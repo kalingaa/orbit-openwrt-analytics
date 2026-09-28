@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import ipaddress
 import re
 import shutil
 import sys
@@ -39,6 +40,22 @@ def csv(value: str) -> list[str]:
 
 def lua_quote(value: str) -> str:
     return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def cidr_label_regex(value: str) -> str:
+    """Return a JSON-source-safe regex for dotted IPv4 labels in a CIDR."""
+    network = ipaddress.ip_network(value, strict=False)
+    if network.version != 4:
+        raise ValueError("LAN_CIDR must be an IPv4 network")
+    octets = str(network.network_address).split(".")
+    full_octets, remaining_bits = divmod(network.prefixlen, 8)
+    parts = octets[:full_octets]
+    if remaining_bits:
+        start = int(octets[full_octets])
+        size = 2 ** (8 - remaining_bits)
+        parts.append("(?:" + "|".join(str(number) for number in range(start, start + size)) + ")")
+    parts.extend(["[0-9]{1,3}"] * (4 - len(parts)))
+    return r"\\.".join(parts)
 
 
 def remove_disabled_panels(value):
@@ -96,6 +113,7 @@ def main() -> int:
         "__ROUTER_LABEL__": values["ROUTER_LABEL"],
         "__ROUTER_EXPORTER_PORT__": values.get("ROUTER_EXPORTER_PORT", "9100"),
         "__LAN_CIDR__": values["LAN_CIDR"],
+        "__LAN_IP_REGEX__": cidr_label_regex(values["LAN_CIDR"]),
         "__LAN_DEVICE__": values.get("LAN_DEVICE", "br-lan"),
         "__LOCAL_DOMAIN__": values.get("LOCAL_DOMAIN", "lan"),
         "__PROMETHEUS_RETENTION_TIME__": values["PROMETHEUS_RETENTION_TIME"],

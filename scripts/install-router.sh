@@ -45,7 +45,8 @@ uci commit prometheus-node-exporter-lua
 
 uci set netifyd.@netifyd[0].enabled='1'
 uci set netifyd.@netifyd[0].autoconfig='0'
-uci set netifyd.@netifyd[0].internal_if="$LAN_DEVICE"
+uci -q delete netifyd.@netifyd[0].internal_if || true
+uci add_list netifyd.@netifyd[0].internal_if="$LAN_DEVICE"
 uci -q delete netifyd.@netifyd[0].external_if || true
 # Intentional word splitting: the rendered value is a validated space-separated list.
 # shellcheck disable=SC2086

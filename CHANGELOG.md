@@ -24,6 +24,12 @@ Versioning once the first tagged release is published.
   cannot append a second identical set of accounting rules.
 - Show authoritative WAN usage, unattributed bytes, application coverage, and
   Netify stream health directly in Grafana.
+- Restrict per-device application accounting to `LAN_CIDR` and purge cached
+  WAN-side/router addresses from device series.
+- Configure Netify's internal interface as the UCI list expected by its init
+  script, ensuring the daemon actually starts with LAN capture enabled.
+- Filter application device panels by the rendered LAN CIDR so historical
+  WAN-side samples are hidden immediately as well as rejected going forward.
 - Guided configuration and one-command rendering/deployment workflow.
 - Support for one to three WANs and optional external DNS hostname lookup.
 - Eight provisioned dashboards covering overview, devices, WANs, applications,

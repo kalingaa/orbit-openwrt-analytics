@@ -25,6 +25,7 @@ local function new_state()
     events_total = 0,
     duplicate_events_total = 0,
     unmatched_events_total = 0,
+    non_lan_events_total = 0,
     metadata = {},
     event_ids = {},
     totals = {}
@@ -36,6 +37,10 @@ if not state or state.version ~= 1 then state = new_state() end
 state.metadata = state.metadata or {}
 state.event_ids = state.event_ids or {}
 state.totals = state.totals or {}
+state.non_lan_events_total = state.non_lan_events_total or 0
+for key, total in pairs(state.totals) do
+  if not collector.is_lan_ip(total.labels and total.labels.ip) then state.totals[key] = nil end
+end
 
 local names = collector.load_names()
 local device_wans = wan_devices()
@@ -86,7 +91,10 @@ local function refresh_snapshot_metadata(now, force)
               (snapshot_total > 0 and snapshot_total or nil)
             metadata.last_upload_ratio = old and old.last_upload_ratio or
               (snapshot_total > 0 and snapshot_upload / snapshot_total or nil)
-            state.metadata[digest] = metadata
+            if not old or collector.is_lan_ip(metadata.local_ip) or
+                not collector.is_lan_ip(old.local_ip) then
+              state.metadata[digest] = metadata
+            end
           end
         end
       end
@@ -117,6 +125,10 @@ local function add_bytes(metadata, upload, download, flow_count)
   local ip = collector.safe(metadata.local_ip)
   local mac = string.lower(collector.safe(metadata.local_mac))
   local proto_number = tonumber(metadata.ip_protocol) or 0
+  if not collector.is_lan_ip(ip) then
+    state.non_lan_events_total = state.non_lan_events_total + 1
+    return
+  end
   if ip == "" or mac == "" or (proto_number ~= 6 and proto_number ~= 17) then
     state.unmatched_events_total = (state.unmatched_events_total or 0) + 1
     return
@@ -198,7 +210,10 @@ for line in io.lines() do
         metadata.counted = old and old.counted or false
         metadata.last_total = old and old.last_total or nil
         metadata.last_upload_ratio = old and old.last_upload_ratio or nil
-        state.metadata[digest] = metadata
+        if not old or collector.is_lan_ip(metadata.local_ip) or
+            not collector.is_lan_ip(old.local_ip) then
+          state.metadata[digest] = metadata
+        end
       elseif kind == "flow_stats" or kind == "flow_purge" then
         local id = event_id(kind, flow)
         if state.event_ids[digest] == id then

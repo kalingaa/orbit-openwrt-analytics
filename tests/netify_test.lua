@@ -5,6 +5,7 @@ local state_path = os.tmpname()
 os.remove(state_path)
 NETIFY_SNAPSHOT_PATH = snapshot_path
 NETIFY_STATE_PATH = state_path
+NETIFY_LOCAL_CIDR = "192.0.2.0/24"
 
 local samples = {}
 function metric(name, kind)
@@ -34,13 +35,19 @@ local flows = {
     local_port = 51820, other_ip = "198.51.100.12", other_port = 51820,
     local_bytes = 500, other_bytes = 700, ip_protocol = 17,
     detected_application_name = "Unknown", detected_protocol_name = "WireGuard"
+  },
+  {
+    digest = "wan-side", local_ip = "198.51.100.1", local_mac = "02:00:00:00:00:ff",
+    local_port = 443, other_ip = "192.0.2.10", other_port = 50003,
+    local_bytes = 900, other_bytes = 800, ip_protocol = 6,
+    detected_application_name = "netify.http", detected_protocol_name = "HTTP/S"
   }
 }
 
 local duplicate = {
-  digest = "youtube-quic", local_ip = "192.0.2.10", local_mac = "02:00:00:00:00:01",
-  local_port = 50001, other_ip = "198.51.100.10", other_port = 443,
-  local_bytes = 10, other_bytes = 20, ip_protocol = 17,
+  digest = "youtube-quic", local_ip = "198.51.100.10", local_mac = "02:00:00:00:00:ff",
+  local_port = 443, other_ip = "192.0.2.10", other_port = 50001,
+  local_bytes = 10000, other_bytes = 20000, ip_protocol = 17,
   detected_application_name = "Unknown", detected_protocol_name = "QUIC",
   host_server_name = "rr1.example.googlevideo.com"
 }
@@ -85,6 +92,8 @@ assert(has_sample({application = "spotify", dpi_application = "spotify", service
 assert(samples.openwrt_netify_service_classified_ratio.values[1].value >
   samples.openwrt_netify_classified_ratio.values[1].value)
 assert(samples.openwrt_netify_active_flows.values[1].value == 3)
+assert(not has_sample({ip = "198.51.100.1"}), "WAN-side address was exported as a device")
+assert(not has_sample({ip = "198.51.100.10"}), "WAN shadow replaced LAN flow metadata")
 
 os.remove(snapshot_path)
 os.remove(state_path)

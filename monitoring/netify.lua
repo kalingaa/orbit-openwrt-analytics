@@ -4,10 +4,30 @@ local snapshot_path = rawget(_G, "NETIFY_SNAPSHOT_PATH") or "/var/run/netifyd/si
 local state_path = rawget(_G, "NETIFY_STATE_PATH") or "/tmp/prometheus-netify-state.json"
 local stream_state_path = rawget(_G, "NETIFY_STREAM_STATE_PATH") or
   "/tmp/prometheus-netify-stream-state.json"
+local local_cidr = rawget(_G, "NETIFY_LOCAL_CIDR") or "__LAN_CIDR__"
 
 local function safe(value)
   if value == nil or value == json.null then return "" end
   return tostring(value):gsub('["\\\r\n\t]', '_')
+end
+
+local function ipv4_number(ip)
+  local a, b, c, d = tostring(ip or ""):match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$")
+  a, b, c, d = tonumber(a), tonumber(b), tonumber(c), tonumber(d)
+  if not a or a > 255 or b > 255 or c > 255 or d > 255 then return nil end
+  return ((a * 256 + b) * 256 + c) * 256 + d
+end
+
+local function is_lan_ip(ip)
+  local network, prefix = local_cidr:match("^([^/]+)/(%d+)$")
+  prefix = tonumber(prefix)
+  local address_number = ipv4_number(ip)
+  local network_number = ipv4_number(network)
+  if not address_number or not network_number or not prefix or prefix < 0 or prefix > 32 then
+    return false
+  end
+  local block_size = 2 ^ (32 - prefix)
+  return math.floor(address_number / block_size) == math.floor(network_number / block_size)
 end
 
 local function read_json(path)
@@ -250,6 +270,7 @@ local function scrape()
   local stream_events_metric = metric("openwrt_netify_stream_events_total", "counter")
   local stream_unmatched_metric = metric("openwrt_netify_stream_unmatched_events_total", "counter")
   local stream_duplicate_metric = metric("openwrt_netify_stream_duplicate_events_total", "counter")
+  local stream_non_lan_metric = metric("openwrt_netify_stream_non_lan_events_total", "counter")
 
   local now = os.time()
   local stream_state = read_json(stream_state_path)
@@ -259,6 +280,7 @@ local function scrape()
   stream_events_metric({}, stream_state and (stream_state.events_total or 0) or 0)
   stream_unmatched_metric({}, stream_state and (stream_state.unmatched_events_total or 0) or 0)
   stream_duplicate_metric({}, stream_state and (stream_state.duplicate_events_total or 0) or 0)
+  stream_non_lan_metric({}, stream_state and (stream_state.non_lan_events_total or 0) or 0)
   local snapshot = read_json(snapshot_path)
   if (not snapshot or type(snapshot.flows) ~= "table") and not stream_fresh then
     active_metric({}, 0)
@@ -272,6 +294,9 @@ local function scrape()
     migrate_state(read_json(state_path) or {version = 3, seen = {}, totals = {}})
   state.seen = state.seen or {}
   state.totals = state.totals or {}
+  for key, total in pairs(state.totals) do
+    if not is_lan_ip(total.labels and total.labels.ip) then state.totals[key] = nil end
+  end
 
   local names = load_names()
   local wan_map = load_wan_map()
@@ -292,7 +317,12 @@ local function scrape()
           local total = (tonumber(flow.local_bytes) or 0) + (tonumber(flow.other_bytes) or 0)
           local previous_total = previous and
             ((tonumber(previous.local_bytes) or 0) + (tonumber(previous.other_bytes) or 0)) or -1
-          if total > previous_total then unique_flows[digest] = flow end
+          local flow_is_lan = is_lan_ip(flow.local_ip)
+          local previous_is_lan = previous and is_lan_ip(previous.local_ip) or false
+          if (flow_is_lan and not previous_is_lan) or
+              (flow_is_lan == previous_is_lan and total > previous_total) then
+            unique_flows[digest] = flow
+          end
         end
       end
     end
@@ -303,7 +333,7 @@ local function scrape()
     local mac = string.lower(safe(flow.local_mac))
     local digest = safe(flow.digest)
     local proto_number = tonumber(flow.ip_protocol) or 0
-    if ip ~= "" and mac ~= "" and digest ~= "" and (proto_number == 6 or proto_number == 17) then
+    if is_lan_ip(ip) and mac ~= "" and digest ~= "" and (proto_number == 6 or proto_number == 17) then
       active = active + 1
       local app, dpi_app, protocol, service, domain, traffic_class, detection, intel = classify(flow)
       if safe(flow.detected_application_name) ~= "" and safe(flow.detected_application_name) ~= "Unknown" then
@@ -395,5 +425,6 @@ return {
   load_wan_map = load_wan_map,
   tuple_key = tuple_key,
   classify = classify,
-  totals_key = totals_key
+  totals_key = totals_key,
+  is_lan_ip = is_lan_ip
 }

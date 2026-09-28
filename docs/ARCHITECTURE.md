@@ -29,6 +29,15 @@ Prometheus counters in tmpfs. If the event consumer is unavailable, the Lua
 exporter temporarily falls back to the older active-flow snapshot method and
 sets `openwrt_netify_stream_up` to zero.
 
+Per-device application accounting accepts `local_ip` values only when they are
+inside the configured `LAN_CIDR`. This boundary check is intentional: Netify
+can describe router and upstream gateway addresses as local when observing a
+WAN interface. Those records are rejected and any cached non-LAN totals are
+removed, so device views represent LAN-originated traffic routed to a WAN.
+The installer configures the LAN capture device as a UCI list because the
+OpenWrt Netify init script consumes both internal and external interfaces with
+`config_list_foreach`.
+
 OpenWrt's packaged Netify v4 agent is a DPI classifier, not an authoritative
 traffic-accounting engine. It may stop reporting byte growth after its packet
 inspection budget is reached even though the connection continues. The

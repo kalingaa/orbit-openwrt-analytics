@@ -25,6 +25,14 @@ local stats = {
     local_bytes = 100, other_bytes = 1000, total_bytes = 1100
   }
 }
+local wan_shadow = {
+  type = "flow", interface = "test-wan", flow = {
+    digest = "stream-test", local_ip = "198.51.100.20",
+    local_mac = "02:00:00:00:00:ff", local_port = 443,
+    other_ip = "192.0.2.20", other_port = 50000, ip_protocol = 6,
+    detected_application_name = "netify.youtube", detected_protocol_name = "HTTP/S"
+  }
+}
 local purge = {
   type = "flow_purge",
   flow = {
@@ -33,8 +41,24 @@ local purge = {
   }
 }
 local lines = {
-  json.encode(metadata), json.encode(stats), json.encode(stats), json.encode(purge)
+  json.encode(metadata), json.encode(wan_shadow), json.encode(stats), json.encode(stats), json.encode(purge)
 }
+local wan_metadata = {
+  type = "flow", interface = "test-wan", flow = {
+    digest = "wan-side", local_ip = "198.51.100.1", local_mac = "02:00:00:00:00:ff",
+    local_port = 443, other_ip = "192.0.2.20", other_port = 50001,
+    ip_protocol = 6, detected_application_name = "netify.http",
+    detected_protocol_name = "HTTP/S"
+  }
+}
+local wan_stats = {
+  type = "flow_stats", flow = {
+    digest = "wan-side", last_seen_at = 3000,
+    local_bytes = 1000, other_bytes = 2000, total_bytes = 3000
+  }
+}
+lines[#lines + 1] = json.encode(wan_metadata)
+lines[#lines + 1] = json.encode(wan_stats)
 
 local original_lines = io.lines
 io.lines = function()
@@ -45,6 +69,7 @@ io.lines = function()
   end
 end
 arg = {"monitoring/netify.lua", state_path}
+NETIFY_LOCAL_CIDR = "192.0.2.0/24"
 dofile("monitoring/netify-stream.lua")
 io.lines = original_lines
 
@@ -61,6 +86,10 @@ assert(found.upload == 150, "upload intervals were not summed")
 assert(found.download == 1500, "download intervals were not summed")
 assert(found.flows == 1, "flow was counted more than once")
 assert(state.duplicate_events_total == 1, "duplicate event was not rejected")
+assert(state.non_lan_events_total == 1, "non-LAN event was not rejected")
+for _, total in pairs(state.totals) do
+  assert(total.labels.ip ~= "198.51.100.1", "WAN-side address was stored as a device")
+end
 
 local samples = {}
 function metric(name, kind)
