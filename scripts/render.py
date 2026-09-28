@@ -55,7 +55,9 @@ def cidr_label_regex(value: str) -> str:
         size = 2 ** (8 - remaining_bits)
         parts.append("(?:" + "|".join(str(number) for number in range(start, start + size)) + ")")
     parts.extend(["[0-9]{1,3}"] * (4 - len(parts)))
-    return r"\\.".join(parts)
+    # This value is substituted into JSON source. PromQL needs two backslashes
+    # in its decoded string literal, so JSON source needs four.
+    return r"\\\\.".join(parts)
 
 
 def remove_disabled_panels(value):

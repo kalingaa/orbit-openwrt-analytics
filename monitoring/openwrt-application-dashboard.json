@@ -148,7 +148,7 @@
       "type": "bargauge"
     }
   ],
-  "refresh": "5s",
+  "refresh": "30s",
   "schemaVersion": 41,
   "tags": ["openwrt", "nlbwmon", "application-detail"],
   "templating": {
@@ -172,7 +172,7 @@
     ]
   },
   "time": {"from": "now-6h", "to": "now"},
-  "timepicker": {},
+  "timepicker": {"refresh_intervals": ["30s", "1m", "5m", "15m", "30m", "1h"]},
   "timezone": "browser",
   "title": "OpenWrt Application Analytics",
   "uid": "openwrt-application-analytics",

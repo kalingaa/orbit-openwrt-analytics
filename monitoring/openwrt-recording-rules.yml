@@ -34,7 +34,9 @@ groups:
         expr: sum by (mac, ip, application, dpi_application, service, domain, protocol, traffic_class, detection, wan, direction) (increase(openwrt_netify_application_bytes_total{job="openwrt",dpi_application!="",router="__ROUTER_LABEL__"}[1h]))
 
   - name: openwrt_daily_rollups
-    interval: 24h
+    # Evaluate the rolling 24-hour window hourly so a Prometheus restart does
+    # not leave daily panels empty for up to a full day.
+    interval: 1h
     rules:
       - record: openwrt:device_download_bytes:1d
         expr: sum by (mac, ip) (increase(nlbwmon_rx_bytes{job="openwrt",router="__ROUTER_LABEL__"}[24h]))

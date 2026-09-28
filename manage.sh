@@ -57,7 +57,12 @@ test_rendered() {
 import json, pathlib, re, sys
 root = pathlib.Path(sys.argv[1])
 for path in root.glob("*dashboard.json"):
-    json.loads(path.read_text(encoding="utf-8"))
+    dashboard = json.loads(path.read_text(encoding="utf-8"))
+    for panel in dashboard.get("panels", []):
+        for target in panel.get("targets", []):
+            expression = target.get("expr", "")
+            if re.search(r'(?<!\\)\\[.dDsSwW]', expression):
+                raise SystemExit(f"Invalid PromQL regex escape in {path}: {expression}")
 bad = []
 for path in root.rglob("*"):
     if path.is_file():

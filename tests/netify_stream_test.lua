@@ -87,6 +87,8 @@ assert(found.download == 1500, "download intervals were not summed")
 assert(found.flows == 1, "flow was counted more than once")
 assert(state.duplicate_events_total == 1, "duplicate event was not rejected")
 assert(state.non_lan_events_total == 1, "non-LAN event was not rejected")
+assert(state.metadata["stream-test"] == nil, "purged flow metadata was retained")
+assert(state.event_ids["stream-test"] == nil, "purged flow event id was retained")
 for _, total in pairs(state.totals) do
   assert(total.labels.ip ~= "198.51.100.1", "WAN-side address was stored as a device")
 end

@@ -48,6 +48,7 @@ local conntrack_wans = collector.load_wan_map()
 local dirty = 0
 local last_refresh = os.time()
 local last_snapshot_refresh = 0
+local metadata_ttl = 900
 
 local function copy_metadata(flow, interface)
   return {
@@ -229,8 +230,15 @@ for line in io.lines() do
             metadata.touched = now
             local upload, download = accounting_deltas(metadata, flow)
             add_bytes(metadata, upload, download, metadata.counted and 0 or 1)
-            metadata.counted = true
-            if kind == "flow_purge" then metadata.purged = true end
+            if kind == "flow_purge" then
+              -- A purged flow cannot produce useful future deltas. Keeping its
+              -- metadata caused hundreds of thousands of stale records to
+              -- accumulate and eventually exhausted router memory.
+              state.metadata[digest] = nil
+              state.event_ids[digest] = nil
+            else
+              metadata.counted = true
+            end
           else
             state.unmatched_events_total = (state.unmatched_events_total or 0) + 1
           end
@@ -242,7 +250,7 @@ for line in io.lines() do
 
     if dirty >= 25 then
       for digest, metadata in pairs(state.metadata) do
-        if now - (metadata.touched or 0) > 3600 then
+        if now - (metadata.touched or 0) > metadata_ttl then
           state.metadata[digest] = nil
           state.event_ids[digest] = nil
         end

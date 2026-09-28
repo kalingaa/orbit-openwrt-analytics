@@ -26,7 +26,7 @@ for path in /etc/config/nlbwmon /etc/config/netifyd /etc/config/prometheus-node-
   /etc/nftables.d/90-prometheus-wan-apps.nft \
   /etc/nftables.d/91-openwrt-network-analytics-devices.nft \
   /etc/nftables.d/91-prometheus-wan-devices.nft /etc/prometheus-device-names \
-  /etc/init.d/prometheus-netify-stream; do
+  /etc/init.d/prometheus-netify-stream /etc/sysctl.d/99-openwrt-analytics.conf; do
   [ ! -e "$path" ] || cp -p "$path" "$BACKUP/$(basename "$path")"
 done
 
@@ -57,7 +57,7 @@ uci -q delete netifyd.@netifyd[0].external_if || true
 for device in $WAN_DEVICES; do uci add_list netifyd.@netifyd[0].external_if="$device"; done
 uci commit netifyd
 
-install -d -m 0755 /usr/lib/lua/prometheus-collectors /etc/nftables.d
+install -d -m 0755 /usr/lib/lua/prometheus-collectors /etc/nftables.d /etc/sysctl.d
 for collector in nlbwmon netify device_inventory wan_apps; do
   install -m 0644 "$PAYLOAD/$collector.lua" "/usr/lib/lua/prometheus-collectors/$collector.lua"
 done
@@ -68,6 +68,7 @@ install -m 0755 "$PAYLOAD/prometheus-netify-stream.init" /etc/init.d/prometheus-
 install -m 0755 "$PAYLOAD/device-name" /usr/bin/device-name
 install -m 0755 "$PAYLOAD/prometheus-device-names-refresh" /usr/bin/prometheus-device-names-refresh
 install -m 0755 "$PAYLOAD/prometheus-device-inventory-checkpoint" /usr/bin/prometheus-device-inventory-checkpoint
+install -m 0644 "$PAYLOAD/99-openwrt-analytics.conf" /etc/sysctl.d/99-openwrt-analytics.conf
 install -m 0644 "$PAYLOAD/netifyd.conf" /etc/netifyd.conf
 install -m 0644 "$PAYLOAD/wan_app_counters.nft" /etc/nftables.d/90-openwrt-network-analytics-apps.nft
 [ -f /etc/prometheus-device-names ] || install -m 0600 "$PAYLOAD/prometheus-device-names" /etc/prometheus-device-names
@@ -89,6 +90,22 @@ grep -q 'prometheus-device-inventory-checkpoint' /etc/crontabs/root 2>/dev/null 
 fw4 check
 /etc/init.d/firewall reload
 timeout 75 /etc/init.d/mwan3 restart || true
+/etc/init.d/prometheus-netify-stream stop || true
+# Older wrapper versions did not forward procd termination to their pipeline.
+# Terminate only verified orphaned stream children before resetting state.
+for pid in $(pidof lua 2>/dev/null || true); do
+  cmd=$(tr '\000' ' ' < "/proc/$pid/cmdline" 2>/dev/null || true)
+  case "$cmd" in *prometheus-netify-stream.lua*) kill "$pid" 2>/dev/null || true;; esac
+done
+for pid in $(pidof socat 2>/dev/null || true); do
+  cmd=$(tr '\000' ' ' < "/proc/$pid/cmdline" 2>/dev/null || true)
+  case "$cmd" in *UNIX-CONNECT:/var/run/netifyd/netifyd.sock*) kill "$pid" 2>/dev/null || true;; esac
+done
+sleep 1
+# This is an ephemeral accumulator. Prometheus retains the historical samples,
+# while starting from a compact state avoids decoding the pre-fix unbounded file.
+rm -f /tmp/prometheus-netify-stream-state.json /tmp/prometheus-netify-stream-state.json.tmp
+sysctl -p /etc/sysctl.d/99-openwrt-analytics.conf
 for service in nlbwmon netifyd prometheus-netify-stream cron prometheus-node-exporter-lua; do
   "/etc/init.d/$service" enable
   "/etc/init.d/$service" restart

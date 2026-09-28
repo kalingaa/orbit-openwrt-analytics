@@ -91,7 +91,7 @@
       "title": "Underlying Protocols", "type": "bargauge"
     }
   ],
-  "refresh": "5s",
+  "refresh": "30s",
   "schemaVersion": 41,
   "tags": ["openwrt", "netify", "services", "security"],
   "templating": {"list": [
@@ -99,7 +99,7 @@
     {"allValue": ".*", "current": {"selected": true, "text": "All", "value": "$__all"}, "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}, "definition": "label_values(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\"}, traffic_class)", "includeAll": true, "label": "Traffic Class", "multi": true, "name": "traffic_class", "options": [], "query": {"query": "label_values(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\"}, traffic_class)", "refId": "StandardVariableQuery"}, "refresh": 1, "regex": "", "sort": 1, "type": "query"}
   ]},
   "time": {"from": "now-6h", "to": "now"},
-  "timepicker": {},
+  "timepicker": {"refresh_intervals": ["30s", "1m", "5m", "15m", "30m", "1h"]},
   "timezone": "browser",
   "title": "OpenWrt Service & Security Analytics",
   "uid": "openwrt-service-security-analytics",

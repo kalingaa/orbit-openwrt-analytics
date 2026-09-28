@@ -44,6 +44,18 @@ Versioning once the first tagged release is published.
 - Isolate high-cardinality Netify serialization in a dedicated 10-second
   scrape so it cannot time out the fast WAN, mwan3, inventory, and nlbwmon
   collectors.
+- Bound Netify flow metadata to 15 minutes, discard purged-flow state
+  immediately, and reset the ephemeral accumulator during upgrades to prevent
+  router memory exhaustion.
+- Ensure the Netify stream wrapper terminates its Lua and socket children so
+  service restarts cannot leave high-memory orphan collectors behind.
+- Raise the OpenWrt kernel receive-buffer ceiling for reliable nlbwmon
+  conntrack dumps.
+- Correct rendered LAN-regex escaping, validate it during tests, and use safer
+  dashboard refresh intervals for expensive or long-range queries. Grafana
+  also enforces a 30-second minimum for refresh values retained in old URLs.
+- Evaluate rolling 24-hour recording rules hourly so daily panels recover
+  promptly after Prometheus restarts.
 - Guided configuration and one-command rendering/deployment workflow.
 - Support for one to three WANs and optional external DNS hostname lookup.
 - Eight provisioned dashboards covering overview, devices, WANs, applications,

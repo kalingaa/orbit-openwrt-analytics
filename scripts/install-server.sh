@@ -10,7 +10,8 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 mkdir -p "$BACKUP_DIR" /etc/prometheus/rules /etc/grafana/provisioning/datasources \
-  /etc/grafana/provisioning/dashboards /var/lib/grafana/dashboards
+  /etc/grafana/provisioning/dashboards /var/lib/grafana/dashboards \
+  /etc/systemd/system/grafana-server.service.d
 
 backup_file() {
   path=$1
@@ -44,6 +45,7 @@ for path in \
   /etc/default/prometheus \
   /etc/grafana/provisioning/datasources/prometheus.yml \
   /etc/grafana/provisioning/dashboards/openwrt-network-analytics.yml \
+  /etc/systemd/system/grafana-server.service.d/openwrt-analytics.conf \
   /etc/grafana/provisioning/dashboards/firewall-analytics.yml; do
   backup_file "$path"
 done
@@ -53,6 +55,7 @@ install -o root -g root -m 0644 "$BUILD_DIR/openwrt-recording-rules.yml" /etc/pr
 install -o root -g root -m 0644 "$BUILD_DIR/prometheus-defaults" /etc/default/prometheus
 install -o root -g grafana -m 0644 "$BUILD_DIR/grafana-datasource.yml" /etc/grafana/provisioning/datasources/prometheus.yml
 install -o root -g grafana -m 0644 "$BUILD_DIR/grafana-dashboard-provider.yml" /etc/grafana/provisioning/dashboards/openwrt-network-analytics.yml
+install -o root -g root -m 0644 "$BUILD_DIR/grafana-openwrt-analytics.conf" /etc/systemd/system/grafana-server.service.d/openwrt-analytics.conf
 # Remove the pre-project provider after backing it up. Keeping both files makes
 # Grafana provision every dashboard UID twice and serve stale dashboard copies.
 rm -f /etc/grafana/provisioning/dashboards/firewall-analytics.yml
@@ -63,6 +66,7 @@ done
 
 promtool check config /etc/prometheus/prometheus.yml
 promtool check rules /etc/prometheus/rules/openwrt-recording-rules.yml
+systemctl daemon-reload
 systemctl enable prometheus prometheus-node-exporter grafana-server
 systemctl restart prometheus prometheus-node-exporter grafana-server
 echo "Server installation complete. Backup: $BACKUP_DIR"
