@@ -16,6 +16,14 @@ Versioning once the first tagged release is published.
   interfaces instead of assuming one snapshot key.
 - Keep existing application dashboards useful by exposing the best resolved
   application/service name while retaining strict DPI results separately.
+- Replace lossy active-flow snapshot accounting with a persistent Netify event
+  consumer that joins flow metadata to periodic and final directional bytes.
+- Separate authoritative nftables WAN totals from overlapping port-based
+  application counters so totals cannot accidentally be summed twice.
+- Remove the legacy WAN-application nftables include during upgrades so fw4
+  cannot append a second identical set of accounting rules.
+- Show authoritative WAN usage, unattributed bytes, application coverage, and
+  Netify stream health directly in Grafana.
 - Guided configuration and one-command rendering/deployment workflow.
 - Support for one to three WANs and optional external DNS hostname lookup.
 - Eight provisioned dashboards covering overview, devices, WANs, applications,

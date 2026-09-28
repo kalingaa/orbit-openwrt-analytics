@@ -2,6 +2,8 @@ local json = require "cjson"
 
 local snapshot_path = rawget(_G, "NETIFY_SNAPSHOT_PATH") or "/var/run/netifyd/sink-request.json"
 local state_path = rawget(_G, "NETIFY_STATE_PATH") or "/tmp/prometheus-netify-state.json"
+local stream_state_path = rawget(_G, "NETIFY_STREAM_STATE_PATH") or
+  "/tmp/prometheus-netify-stream-state.json"
 
 local function safe(value)
   if value == nil or value == json.null then return "" end
@@ -244,9 +246,21 @@ local function scrape()
   local classified_metric = metric("openwrt_netify_classified_ratio", "gauge")
   local service_metric = metric("openwrt_netify_service_classified_ratio", "gauge")
   local hostname_metric = metric("openwrt_netify_hostname_visibility_ratio", "gauge")
+  local stream_metric = metric("openwrt_netify_stream_up", "gauge")
+  local stream_events_metric = metric("openwrt_netify_stream_events_total", "counter")
+  local stream_unmatched_metric = metric("openwrt_netify_stream_unmatched_events_total", "counter")
+  local stream_duplicate_metric = metric("openwrt_netify_stream_duplicate_events_total", "counter")
 
+  local now = os.time()
+  local stream_state = read_json(stream_state_path)
+  local stream_fresh = stream_state and stream_state.version == 1 and
+    now - (tonumber(stream_state.updated_at) or 0) <= 60
+  stream_metric({}, stream_fresh and 1 or 0)
+  stream_events_metric({}, stream_state and (stream_state.events_total or 0) or 0)
+  stream_unmatched_metric({}, stream_state and (stream_state.unmatched_events_total or 0) or 0)
+  stream_duplicate_metric({}, stream_state and (stream_state.duplicate_events_total or 0) or 0)
   local snapshot = read_json(snapshot_path)
-  if not snapshot or type(snapshot.flows) ~= "table" then
+  if (not snapshot or type(snapshot.flows) ~= "table") and not stream_fresh then
     active_metric({}, 0)
     classified_metric({}, 0)
     service_metric({}, 0)
@@ -254,13 +268,13 @@ local function scrape()
     return
   end
 
-  local state = migrate_state(read_json(state_path) or {version = 3, seen = {}, totals = {}})
+  local state = stream_fresh and stream_state or
+    migrate_state(read_json(state_path) or {version = 3, seen = {}, totals = {}})
   state.seen = state.seen or {}
   state.totals = state.totals or {}
 
   local names = load_names()
   local wan_map = load_wan_map()
-  local now = os.time()
   local active = 0
   local classified = 0
   local service_classified = 0
@@ -269,7 +283,7 @@ local function scrape()
 
   -- Netify v4 can group the same flow under bridge and physical capture
   -- interfaces. Select the copy with the largest observed byte total.
-  for _, interface_flows in pairs(snapshot.flows) do
+  for _, interface_flows in pairs((snapshot and snapshot.flows) or {}) do
     if type(interface_flows) == "table" then
       for _, flow in ipairs(interface_flows) do
         local digest = safe(flow.digest)
@@ -315,26 +329,28 @@ local function scrape()
         mac = mac,
         device_name = name
       }
-      local label_key = totals_key(labels)
-      local previous = state.seen[digest]
-      local up = tonumber(flow.local_bytes) or 0
-      local down = tonumber(flow.other_bytes) or 0
-      local up_delta = up
-      local down_delta = down
-      local is_new = 1
-      if previous then
-        up_delta = up >= (previous.up or 0) and (up - (previous.up or 0)) or up
-        down_delta = down >= (previous.down or 0) and (down - (previous.down or 0)) or down
-        is_new = 0
-      end
+      if not stream_fresh then
+        local label_key = totals_key(labels)
+        local previous = state.seen[digest]
+        local up = tonumber(flow.local_bytes) or 0
+        local down = tonumber(flow.other_bytes) or 0
+        local up_delta = up
+        local down_delta = down
+        local is_new = 1
+        if previous then
+          up_delta = up >= (previous.up or 0) and (up - (previous.up or 0)) or up
+          down_delta = down >= (previous.down or 0) and (down - (previous.down or 0)) or down
+          is_new = 0
+        end
 
-      local total = state.totals[label_key] or {labels = labels, upload = 0, download = 0, flows = 0}
-      total.labels = labels
-      total.upload = (total.upload or 0) + up_delta
-      total.download = (total.download or 0) + down_delta
-      total.flows = (total.flows or 0) + is_new
-      state.totals[label_key] = total
-      state.seen[digest] = {up = up, down = down, touched = now}
+        local total = state.totals[label_key] or {labels = labels, upload = 0, download = 0, flows = 0}
+        total.labels = labels
+        total.upload = (total.upload or 0) + up_delta
+        total.download = (total.download or 0) + down_delta
+        total.flows = (total.flows or 0) + is_new
+        state.totals[label_key] = total
+        state.seen[digest] = {up = up, down = down, touched = now}
+      end
     end
   end
 
@@ -367,7 +383,17 @@ local function scrape()
   classified_metric({}, active > 0 and classified / active or 0)
   service_metric({}, active > 0 and service_classified / active or 0)
   hostname_metric({}, active > 0 and hostname_visible / active or 0)
-  write_json(state_path, state)
+  if not stream_fresh then write_json(state_path, state) end
 end
 
-return { scrape = scrape }
+return {
+  scrape = scrape,
+  safe = safe,
+  read_json = read_json,
+  write_json = write_json,
+  load_names = load_names,
+  load_wan_map = load_wan_map,
+  tuple_key = tuple_key,
+  classify = classify,
+  totals_key = totals_key
+}

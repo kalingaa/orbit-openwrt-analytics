@@ -4,6 +4,7 @@
 LAN clients -> OpenWrt/fw4
                  |-- nlbwmon: device counters
                  |-- netifyd: local application classification
+                 |      `-- Unix event stream -> persistent interval collector
                  |-- nftables: WAN/device counters
                  |-- Lua exporter :9100
                           |
@@ -18,6 +19,31 @@ Interface counters are authoritative for total WAN usage. `nlbwmon` provides
 device accounting. Netify provides best-effort application attribution. The
 data-quality dashboard deliberately compares these different scopes rather
 than implying that they must match exactly.
+
+Application byte accounting consumes Netify's Unix socket continuously. A
+`flow` record supplies device and DPI metadata, while `flow_stats` and
+`flow_purge` records supply directional byte intervals. The collector joins
+those records by flow digest, deduplicates repeated events, backfills metadata
+for already-active flows from Netify's local snapshot, and stores monotonic
+Prometheus counters in tmpfs. If the event consumer is unavailable, the Lua
+exporter temporarily falls back to the older active-flow snapshot method and
+sets `openwrt_netify_stream_up` to zero.
+
+OpenWrt's packaged Netify v4 agent is a DPI classifier, not an authoritative
+traffic-accounting engine. It may stop reporting byte growth after its packet
+inspection budget is reached even though the connection continues. The
+application dashboards therefore label these values as *DPI-attributed* and
+show total WAN bytes, unattributed bytes, and coverage separately. They never
+scale sampled application values to manufacture a 100% attribution result.
+
+The nftables exporter deliberately exposes two separate metric families:
+
+- `openwrt_wan_bytes_total` is the authoritative passive WAN total.
+- `openwrt_wan_port_application_bytes_total` contains overlapping port-based
+  classifications such as HTTPS, QUIC, and DNS.
+
+The second family must not be summed to calculate WAN totals. A packet can be
+present in both the WAN total and one port classification by design.
 
 The Netify collector preserves four different concepts instead of treating a
 transport as an application:

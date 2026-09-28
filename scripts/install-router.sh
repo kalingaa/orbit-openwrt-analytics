@@ -11,7 +11,7 @@ mkdir -p "$BACKUP"
 . "$PAYLOAD/site.env"
 
 opkg update
-opkg install nlbwmon netifyd coreutils-install coreutils-timeout prometheus-node-exporter-lua \
+opkg install nlbwmon netifyd socat coreutils-install coreutils-timeout prometheus-node-exporter-lua \
   prometheus-node-exporter-lua-ethtool prometheus-node-exporter-lua-hwmon \
   prometheus-node-exporter-lua-mwan3 prometheus-node-exporter-lua-nat_traffic \
   prometheus-node-exporter-lua-netstat prometheus-node-exporter-lua-nft-counters \
@@ -19,8 +19,10 @@ opkg install nlbwmon netifyd coreutils-install coreutils-timeout prometheus-node
 
 for path in /etc/config/nlbwmon /etc/config/netifyd /etc/config/prometheus-node-exporter-lua \
   /etc/netifyd.conf /etc/nftables.d/90-openwrt-network-analytics-apps.nft \
+  /etc/nftables.d/90-prometheus-wan-apps.nft \
   /etc/nftables.d/91-openwrt-network-analytics-devices.nft \
-  /etc/nftables.d/91-prometheus-wan-devices.nft /etc/prometheus-device-names; do
+  /etc/nftables.d/91-prometheus-wan-devices.nft /etc/prometheus-device-names \
+  /etc/init.d/prometheus-netify-stream; do
   [ ! -e "$path" ] || cp -p "$path" "$BACKUP/$(basename "$path")"
 done
 
@@ -54,6 +56,10 @@ install -d -m 0755 /usr/lib/lua/prometheus-collectors /etc/nftables.d
 for collector in nlbwmon netify device_inventory wan_apps wan_devices; do
   install -m 0644 "$PAYLOAD/$collector.lua" "/usr/lib/lua/prometheus-collectors/$collector.lua"
 done
+install -m 0644 "$PAYLOAD/netify-stream.lua" /usr/lib/lua/prometheus-netify-stream.lua
+rm -f /usr/lib/lua/prometheus-collectors/netify-stream.lua
+install -m 0755 "$PAYLOAD/prometheus-netify-stream" /usr/bin/prometheus-netify-stream
+install -m 0755 "$PAYLOAD/prometheus-netify-stream.init" /etc/init.d/prometheus-netify-stream
 install -m 0755 "$PAYLOAD/device-name" /usr/bin/device-name
 install -m 0755 "$PAYLOAD/prometheus-device-names-refresh" /usr/bin/prometheus-device-names-refresh
 install -m 0755 "$PAYLOAD/prometheus-device-inventory-checkpoint" /usr/bin/prometheus-device-inventory-checkpoint
@@ -64,6 +70,7 @@ install -m 0644 "$PAYLOAD/90-prometheus-wan-devices.nft" /etc/nftables.d/91-open
 
 # Migrate the pre-project filename after preserving it in the timestamped backup.
 # Keeping both files would define the same nftables meters twice and fail fw4.
+rm -f /etc/nftables.d/90-prometheus-wan-apps.nft
 rm -f /etc/nftables.d/91-prometheus-wan-devices.nft
 
 grep -q 'prometheus-device-names-refresh' /etc/crontabs/root 2>/dev/null || \
@@ -81,7 +88,7 @@ sed -n 's/.* meter \([^ ]*\) .*/\1/p' /etc/nftables.d/91-openwrt-network-analyti
     nft delete set inet fw4 "$meter_name" 2>/dev/null || true
   done
 /etc/init.d/firewall reload
-for service in nlbwmon netifyd cron prometheus-node-exporter-lua; do
+for service in nlbwmon netifyd prometheus-netify-stream cron prometheus-node-exporter-lua; do
   "/etc/init.d/$service" enable
   "/etc/init.d/$service" restart
 done

@@ -1,0 +1,13 @@
+#!/bin/sh
+
+SOCKET=/var/run/netifyd/netifyd.sock
+COLLECTOR=/usr/lib/lua/prometheus-collectors/netify.lua
+STREAM=/usr/lib/lua/prometheus-netify-stream.lua
+STATE=/tmp/prometheus-netify-stream-state.json
+
+while true; do
+  if [ -S "$SOCKET" ]; then
+    socat -u "UNIX-CONNECT:$SOCKET" STDOUT 2>/dev/null | lua "$STREAM" "$COLLECTOR" "$STATE"
+  fi
+  sleep 2
+done

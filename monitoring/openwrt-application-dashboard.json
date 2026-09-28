@@ -12,7 +12,7 @@
     {
       "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
       "fieldConfig": {"defaults": {"mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}, "overrides": []},
-      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 0},
+      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
       "id": 1,
       "options": {"colorMode": "none", "graphMode": "none", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "name", "wideLayout": true},
       "targets": [{"editorMode": "code", "expr": "vector(1)", "instant": true, "legendFormat": "${application:text}", "range": false, "refId": "A"}],
@@ -22,14 +22,48 @@
     {
       "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
       "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
-      "gridPos": {"h": 4, "w": 16, "x": 8, "y": 0},
+      "description": "Bytes attributed to the selected application or service by the event-driven Netify collector.",
+      "gridPos": {"h": 4, "w": 8, "x": 4, "y": 0},
       "id": 2,
       "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
       "targets": [
         {"editorMode": "code", "expr": "sum(increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",application=~\"$application\",direction=\"download\"}[$__range]))", "instant": true, "legendFormat": "Downloaded", "range": false, "refId": "A"},
         {"editorMode": "code", "expr": "sum(increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",application=~\"$application\",direction=\"upload\"}[$__range]))", "instant": true, "legendFormat": "Uploaded", "range": false, "refId": "B"}
       ],
-      "title": "Application Usage During Selected Time Range",
+      "title": "DPI-Attributed Usage During Selected Time Range",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "description": "Authoritative download total from the WAN interfaces for the selected time range.",
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
+      "id": 9,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "sum(increase(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"})", "instant": true, "legendFormat": "WAN download", "range": false, "refId": "A"}],
+      "title": "Total WAN Download",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "description": "WAN download bytes that could not be attributed by Netify. This is calculated from authoritative interface usage minus all DPI/service-attributed download bytes.",
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 0},
+      "id": 10,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "clamp_min(sum(increase(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}) - sum(increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",direction=\"download\"}[$__range])), 0)", "instant": true, "legendFormat": "Unattributed", "range": false, "refId": "A"}],
+      "title": "Unattributed Download",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "description": "Percentage of authoritative WAN download bytes assigned to an application or service. Event-stream accounting should converge close to the traffic Netify can observe.",
+      "fieldConfig": {"defaults": {"max": 100, "min": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 70}, {"color": "green", "value": 90}]}, "unit": "percent"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 4, "x": 20, "y": 0},
+      "id": 11,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "100 * sum(increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",direction=\"download\"}[$__range])) / clamp_min(sum(increase(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}), 1)", "instant": true, "legendFormat": "DPI coverage", "range": false, "refId": "A"}],
+      "title": "Application Coverage",
       "type": "stat"
     },
     {
@@ -56,7 +90,7 @@
       "targets": [
         {"editorMode": "code", "expr": "sum by (application, direction) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",application=~\"$application\"}[$__range]))", "format": "table", "instant": true, "legendFormat": "__auto", "range": false, "refId": "A"}
       ],
-      "title": "Applications by Usage — Click an Application for Device Details",
+      "title": "Applications by DPI-Attributed Usage — Click for Device Details",
       "transformations": [
         {"id": "groupingToMatrix", "options": {"columnField": "direction", "emptyValue": "0", "rowField": "application", "valueField": "Value"}},
         {"id": "calculateField", "options": {"alias": "Total", "binary": {"left": "download", "operator": "+", "right": "upload"}, "mode": "binary", "reduce": {"include": [], "reducer": "sum"}}}

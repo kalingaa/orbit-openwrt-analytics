@@ -34,10 +34,17 @@ server phase installs Prometheus, node exporter, and Grafana if needed, then
 provisions rules, datasource, and dashboards. Existing managed files are copied
 to a timestamped backup directory before replacement.
 
+The router dependencies include `socat`. The
+`prometheus-netify-stream` procd service uses it to consume Netify's local Unix
+socket continuously; no Netify metadata is sent to an external cloud service.
+
 Router transfers use legacy SCP mode because Dropbear installations do not
 normally ship an SFTP server. During upgrades, the installer also migrates the
 legacy WAN-device include name and safely recreates its generated dynamic
 meters before reloading the validated firewall ruleset.
+It also removes the former `90-prometheus-wan-apps.nft` filename after backing
+it up; retaining it alongside the current include would count every packet
+twice.
 
 When Grafana is not already available through APT, the installer configures the
 [official Grafana stable repository](https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/)

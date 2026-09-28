@@ -91,7 +91,7 @@ install_server() {
 status() {
   load_config
   ssh -p "$ROUTER_SSH_PORT" "$ROUTER_SSH_USER@$ROUTER_ADDRESS" \
-    '/etc/init.d/nlbwmon status; /etc/init.d/netifyd status; /etc/init.d/prometheus-node-exporter-lua status'
+    '/etc/init.d/nlbwmon status; /etc/init.d/netifyd status; /etc/init.d/prometheus-netify-stream status; /etc/init.d/prometheus-node-exporter-lua status'
   ssh -p "$SERVER_SSH_PORT" "$SERVER_SSH_USER@$SERVER_ADDRESS" \
     'systemctl is-active prometheus prometheus-node-exporter grafana-server; curl -fsS http://127.0.0.1:9090/-/ready; curl -fsS http://127.0.0.1:3000/api/health'
 }
@@ -119,6 +119,8 @@ Uninstall is intentionally non-destructive in this release.
    reload fw4:
      /etc/nftables.d/90-openwrt-network-analytics-apps.nft
      /etc/nftables.d/91-openwrt-network-analytics-devices.nft
+   Also disable and remove `/etc/init.d/prometheus-netify-stream` and its
+   `/usr/bin/prometheus-netify-stream` wrapper.
 3. On the server, remove the openwrt scrape jobs/rules and provisioned dashboard
    files, then restart Prometheus and Grafana.
 

@@ -25,7 +25,9 @@ groups:
       - record: openwrt:device_application_bytes:1h
         expr: sum by (mac, ip, layer7) (increase(nlbwmon_rx_bytes{job="openwrt",router="__ROUTER_LABEL__",layer7!=""}[1h]) + increase(nlbwmon_tx_bytes{job="openwrt",router="__ROUTER_LABEL__",layer7!=""}[1h]))
       - record: openwrt:wan_application_bytes:1h
-        expr: sum by (wan, direction, application) (increase(openwrt_wan_application_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[1h]))
+        expr: sum by (wan, direction, application) (increase(openwrt_wan_port_application_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[1h]))
+      - record: openwrt:wan_bytes:1h
+        expr: sum by (wan, direction) (increase(openwrt_wan_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[1h]))
       - record: openwrt:wan_device_bytes:1h
         expr: sum by (wan, direction, ip) (increase(openwrt_wan_device_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[1h]))
       - record: openwrt:netify_application_bytes:1h
@@ -41,7 +43,9 @@ groups:
       - record: openwrt:device_application_bytes:1d
         expr: sum by (mac, ip, layer7) (increase(nlbwmon_rx_bytes{job="openwrt",router="__ROUTER_LABEL__",layer7!=""}[24h]) + increase(nlbwmon_tx_bytes{job="openwrt",router="__ROUTER_LABEL__",layer7!=""}[24h]))
       - record: openwrt:wan_application_bytes:1d
-        expr: sum by (wan, direction, application) (increase(openwrt_wan_application_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[24h]))
+        expr: sum by (wan, direction, application) (increase(openwrt_wan_port_application_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[24h]))
+      - record: openwrt:wan_bytes:1d
+        expr: sum by (wan, direction) (increase(openwrt_wan_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[24h]))
       - record: openwrt:wan_device_bytes:1d
         expr: sum by (wan, direction, ip) (increase(openwrt_wan_device_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[24h]))
       - record: openwrt:netify_application_bytes:1d

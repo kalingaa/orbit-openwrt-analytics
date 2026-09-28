@@ -9,6 +9,8 @@ and serves provisioned Grafana dashboards. Netify processing stays local.
 - Per-IP and per-MAC upload, download, bandwidth, first/last seen, and aliases.
 - Separate application, service/domain, protocol, and security-sensitive traffic
   attribution using local Netify DPI and hostname correlation.
+- Event-driven Netify accounting that captures short-lived and completed flow
+  reports, with visible attribution coverage against authoritative WAN totals.
 - Best-effort identification of VPN, encrypted DNS (DoH/DoT/DoQ), Tor, proxy,
   and unresolved QUIC traffic.
 - One to three WANs with separate usage, rates, applications, and devices.
