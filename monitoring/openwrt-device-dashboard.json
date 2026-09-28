@@ -7,7 +7,8 @@
   "links": [
     {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Back to Firewall Overview", "tooltip": "Open the all-device overview", "type": "link", "url": "/d/openwrt-firewall-analytics/openwrt-firewall-analytics"},
     {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Device Inventory", "tooltip": "First seen, last seen and online devices", "type": "link", "url": "/d/openwrt-device-inventory/openwrt-device-inventory"},
-    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Data Quality", "tooltip": "Collector reconciliation and data health", "type": "link", "url": "/d/openwrt-data-quality/openwrt-data-quality"}
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Data Quality", "tooltip": "Collector reconciliation and data health", "type": "link", "url": "/d/openwrt-data-quality/openwrt-data-quality"},
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Service & Security Analytics", "tooltip": "Inspect services and security-sensitive traffic", "type": "link", "url": "/d/openwrt-service-security-analytics/openwrt-service-security-analytics"}
   ],
   "panels": [
     {
@@ -191,6 +192,26 @@
       "targets": [{"editorMode": "code", "expr": "avg_over_time((sum(irate(nlbwmon_rx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[1m]) + irate(nlbwmon_tx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[1m])) * 8)[1h:5m])", "legendFormat": "1-hour smoothed activity", "range": true, "refId": "A"}],
       "title": "Behavior Pattern — One-Hour Smoothed Activity",
       "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 11, "w": 12, "x": 0, "y": 64},
+      "id": 19,
+      "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "topk(25, sum by (service) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[$__range])))", "instant": true, "legendFormat": "{{service}}", "range": false, "refId": "A"}],
+      "title": "Services and Base Domains — QUIC Kept as Protocol",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 11, "w": 12, "x": 12, "y": 64},
+      "id": 20,
+      "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "sort_desc(sum by (traffic_class, service) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[$__range])))", "instant": true, "legendFormat": "{{traffic_class}} / {{service}}", "range": false, "refId": "A"}],
+      "title": "Traffic Classes — VPN, Encrypted DNS, Tor and Proxy",
+      "type": "bargauge"
     }
   ],
   "refresh": "5s",

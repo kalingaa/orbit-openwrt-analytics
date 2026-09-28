@@ -7,7 +7,10 @@ and serves provisioned Grafana dashboards. Netify processing stays local.
 ## Features
 
 - Per-IP and per-MAC upload, download, bandwidth, first/last seen, and aliases.
-- Application/protocol attribution using local Netify DPI.
+- Separate application, service/domain, protocol, and security-sensitive traffic
+  attribution using local Netify DPI and hostname correlation.
+- Best-effort identification of VPN, encrypted DNS (DoH/DoT/DoQ), Tor, proxy,
+  and unresolved QUIC traffic.
 - One to three WANs with separate usage, rates, applications, and devices.
 - Automatic names from OpenWrt host hints, DHCP leases, and optional DNS PTRs.
 - Inventory, behavioral profiles, reconciliation, and data-quality dashboards.
@@ -47,9 +50,11 @@ manual installation, backups, upgrades, and removal.
 ## Privacy
 
 This project records traffic metadata. It does not decrypt TLS and does not
-enable DNS-query logging. Application attribution can be incomplete when ECH,
-VPNs, proxies, or MAC randomization are used. Keep Grafana and Prometheus on a
-trusted management network and define an appropriate retention policy.
+enable DNS-query logging. Base domains extracted from DNS hints, TLS SNI, and
+QUIC metadata are stored as Prometheus labels. Application and security
+attribution can be incomplete when ECH, VPNs, proxies, shared CDNs, or MAC
+randomization are used. Keep Grafana and Prometheus on a trusted management
+network and define an appropriate retention policy.
 
 ## Project status
 

@@ -9,7 +9,8 @@
     {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open WAN Analytics", "tooltip": "Inspect usage and applications by WAN", "type": "link", "url": "/d/openwrt-wan-analytics/openwrt-wan-analytics"},
     {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Long-Term Analytics", "tooltip": "Use precomputed minute, hourly and daily history", "type": "link", "url": "/d/openwrt-long-term-analytics/openwrt-long-term-analytics"},
     {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Device Inventory", "tooltip": "First seen, last seen and online devices", "type": "link", "url": "/d/openwrt-device-inventory/openwrt-device-inventory"},
-    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Data Quality", "tooltip": "Collector reconciliation and data health", "type": "link", "url": "/d/openwrt-data-quality/openwrt-data-quality"}
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Data Quality", "tooltip": "Collector reconciliation and data health", "type": "link", "url": "/d/openwrt-data-quality/openwrt-data-quality"},
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Service & Security Analytics", "tooltip": "Separate services from protocols and inspect VPN or encrypted DNS", "type": "link", "url": "/d/openwrt-service-security-analytics/openwrt-service-security-analytics"}
   ],
   "panels": [
     {

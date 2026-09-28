@@ -5,7 +5,8 @@
   "graphTooltip": 1,
   "id": null,
   "links": [
-    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Back to Firewall Overview", "tooltip": "Open the all-device overview", "type": "link", "url": "/d/openwrt-firewall-analytics/openwrt-firewall-analytics"}
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Back to Firewall Overview", "tooltip": "Open the all-device overview", "type": "link", "url": "/d/openwrt-firewall-analytics/openwrt-firewall-analytics"},
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Service & Security Analytics", "tooltip": "Inspect services, QUIC, VPN, Tor, proxy and encrypted DNS", "type": "link", "url": "/d/openwrt-service-security-analytics/openwrt-service-security-analytics"}
   ],
   "panels": [
     {
@@ -90,6 +91,26 @@
       "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
       "targets": [{"editorMode": "code", "expr": "topk(20, sum by (protocol) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",application=~\"$application\"}[$__range])))", "instant": true, "legendFormat": "{{protocol}}", "range": false, "refId": "A"}],
       "title": "Detected Protocols",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 10, "w": 12, "x": 0, "y": 38},
+      "id": 7,
+      "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "topk(25, sum by (service) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",application=~\"$application\"}[$__range])))", "instant": true, "legendFormat": "{{service}}", "range": false, "refId": "A"}],
+      "title": "Services and Base Domains — DPI plus Hostname Correlation",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 10, "w": 12, "x": 12, "y": 38},
+      "id": 8,
+      "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "sort_desc(sum by (traffic_class) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",application=~\"$application\"}[$__range])))", "instant": true, "legendFormat": "{{traffic_class}}", "range": false, "refId": "A"}],
+      "title": "Traffic Class — VPN, Encrypted DNS, Tor, Proxy and Unresolved",
       "type": "bargauge"
     }
   ],

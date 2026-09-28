@@ -12,12 +12,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Install validation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.1 lua-cjson prometheus shellcheck
       - name: Render example configuration
         run: CONFIG=config.example ./manage.sh render
       - name: Validate rendered configuration
-        run: CONFIG=config.example ./manage.sh test
-      - name: Check shell scripts
         run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
+          CONFIG=config.example ./manage.sh test
+          promtool check config build/prometheus.yml
+          promtool check rules build/openwrt-recording-rules.yml
+      - name: Check scripts
+        run: |
           shellcheck manage.sh scripts/*.sh
+          luac5.1 -p monitoring/*.lua
+          lua5.1 tests/netify_test.lua

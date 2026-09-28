@@ -1,7 +1,7 @@
 local json = require "cjson"
 
-local snapshot_path = "/var/run/netifyd/sink-request.json"
-local state_path = "/tmp/prometheus-netify-state.json"
+local snapshot_path = rawget(_G, "NETIFY_SNAPSHOT_PATH") or "/var/run/netifyd/sink-request.json"
+local state_path = rawget(_G, "NETIFY_STATE_PATH") or "/tmp/prometheus-netify-state.json"
 
 local function safe(value)
   if value == nil or value == json.null then return "" end
@@ -75,13 +75,139 @@ local function load_wan_map()
   return tuples
 end
 
-local function display_application(flow)
-  local app = safe(flow.detected_application_name)
-  local protocol = safe(flow.detected_protocol_name)
-  if app == "" or app == "Unknown" then app = protocol end
-  if app == "" or app == "Unknown" then app = "Other" end
-  app = app:gsub("^netify%.", "")
-  return app, (protocol ~= "" and protocol or "Unknown")
+local service_domains = {
+  {"googlevideo.com", "YouTube"}, {"youtube.com", "YouTube"},
+  {"ytimg.com", "YouTube"}, {"youtu.be", "YouTube"},
+  {"netflix.com", "Netflix"}, {"nflxvideo.net", "Netflix"},
+  {"nflximg.net", "Netflix"}, {"spotify.com", "Spotify"},
+  {"scdn.co", "Spotify"}, {"tiktok.com", "TikTok"},
+  {"tiktokcdn.com", "TikTok"}, {"byteoversea.com", "TikTok"},
+  {"instagram.com", "Instagram"}, {"cdninstagram.com", "Instagram"},
+  {"whatsapp.com", "WhatsApp"}, {"whatsapp.net", "WhatsApp"},
+  {"facebook.com", "Facebook"}, {"fbcdn.net", "Facebook"},
+  {"messenger.com", "Facebook Messenger"}, {"discord.com", "Discord"},
+  {"discordapp.com", "Discord"}, {"discordapp.net", "Discord"},
+  {"telegram.org", "Telegram"}, {"t.me", "Telegram"},
+  {"signal.org", "Signal"}, {"zoom.us", "Zoom"},
+  {"reddit.com", "Reddit"}, {"redd.it", "Reddit"},
+  {"twitter.com", "X / Twitter"}, {"twimg.com", "X / Twitter"},
+  {"x.com", "X / Twitter"}, {"icloud.com", "Apple iCloud"},
+  {"apple.com", "Apple"}, {"mzstatic.com", "Apple"},
+  {"microsoft.com", "Microsoft"}, {"microsoftonline.com", "Microsoft 365"},
+  {"office.com", "Microsoft 365"}, {"office365.com", "Microsoft 365"},
+  {"live.com", "Microsoft"}, {"github.com", "GitHub"},
+  {"githubusercontent.com", "GitHub"}, {"dropbox.com", "Dropbox"},
+  {"amazon.com", "Amazon"}, {"amazonaws.com", "Amazon Web Services"},
+  {"cloudfront.net", "Amazon CloudFront"}, {"cloudflare.com", "Cloudflare"},
+  {"cloudflare-dns.com", "Cloudflare DNS"}, {"dns.google", "Google DNS"},
+  {"dns.quad9.net", "Quad9 DNS"}, {"dns.nextdns.io", "NextDNS"},
+  {"dns.adguard-dns.com", "AdGuard DNS"}, {"dns.controld.com", "Control D DNS"}
+}
+
+local multi_part_suffixes = {
+  ["co.uk"] = true, ["org.uk"] = true, ["com.au"] = true,
+  ["net.au"] = true, ["co.nz"] = true, ["co.jp"] = true,
+  ["com.br"] = true, ["com.sg"] = true, ["com.lk"] = true
+}
+
+local function nonempty(value)
+  value = safe(value)
+  if value == "" or value == "Unknown" or value == "unknown" then return nil end
+  return value
+end
+
+local function detected_hostname(flow)
+  local hostname = nonempty(flow.detected_hostname) or nonempty(flow.host_server_name) or
+    nonempty(flow.dns_host_name)
+  if not hostname and type(flow.ssl) == "table" then
+    hostname = nonempty(flow.ssl.client_sni) or nonempty(flow.ssl.server_name)
+  end
+  if not hostname then return "Unknown" end
+  hostname = hostname:lower():gsub("%.$", "")
+  if hostname:match("^%d+%.%d+%.%d+%.%d+$") or #hostname > 253 then return "Unknown" end
+  return hostname
+end
+
+local function base_domain(hostname)
+  if hostname == "Unknown" then return hostname end
+  local parts = {}
+  for part in hostname:gmatch("[^%.]+") do parts[#parts + 1] = part end
+  if #parts < 3 then return hostname end
+  local suffix = parts[#parts - 1] .. "." .. parts[#parts]
+  if multi_part_suffixes[suffix] and #parts >= 3 then
+    return parts[#parts - 2] .. "." .. suffix
+  end
+  return suffix
+end
+
+local function contains_any(value, terms)
+  value = (value or ""):lower()
+  for _, term in ipairs(terms) do
+    if value:find(term, 1, true) then return true end
+  end
+  return false
+end
+
+local function intelligence(flow)
+  local found = {}
+  if type(flow.intel) == "table" then
+    for _, item in ipairs(flow.intel) do
+      if type(item) == "table" then
+        local value = nonempty(item.indicator) or nonempty(item.indicator_driver) or
+          nonempty(item.data_feed) or nonempty(item.category)
+        if value then found[#found + 1] = value:lower() end
+      end
+    end
+  end
+  return table.concat(found, ",")
+end
+
+local function service_from_domain(domain)
+  if domain == "Unknown" then return nil end
+  for _, entry in ipairs(service_domains) do
+    local suffix = entry[1]
+    if domain == suffix or domain:sub(-(suffix:len() + 1)) == "." .. suffix then
+      return entry[2]
+    end
+  end
+  return nil
+end
+
+local function classify(flow)
+  local raw_app = nonempty(flow.detected_application_name)
+  local application = raw_app and raw_app:gsub("^netify%.", "") or "Unknown"
+  local protocol = nonempty(flow.detected_protocol_name) or "Unknown"
+  local hostname = detected_hostname(flow)
+  local domain = base_domain(hostname)
+  local service = raw_app and application or service_from_domain(domain) or domain
+  if not service or service == "Unknown" then service = "Unknown" end
+
+  local intel = intelligence(flow)
+  local evidence = table.concat({application, protocol, service, domain, intel}, " "):lower()
+  local protocol_key = protocol:lower()
+  local traffic_class = "application"
+  local detection = raw_app and "dpi" or (domain ~= "Unknown" and "hostname" or "protocol")
+
+  if contains_any(evidence, {"tor_relay", "tor-exit", " tor", "tor "}) then
+    traffic_class = "tor"
+  elseif protocol_key == "doh" or protocol_key == "dot" or protocol_key == "doq" or
+      contains_any(evidence, {"dns-over-https", "dns over https", "dns-over-tls",
+      "dns over tls", "dns-over-quic", "dns over quic", "cloudflare dns",
+      "google dns", "quad9 dns", "nextdns", "adguard dns", "control d dns"}) or
+      tonumber(flow.other_port) == 853 then
+    traffic_class = "encrypted_dns"
+  elseif contains_any(evidence, {"vpn", "wireguard", "openvpn", "tailscale", "zerotier",
+      "ipsec", "nordvpn", "protonvpn", "expressvpn", "surfshark", "tunnel"}) then
+    traffic_class = "vpn"
+  elseif contains_any(evidence, {"proxy", "socks", "privacy-relay", "private relay"}) then
+    traffic_class = "proxy"
+  elseif application == "Unknown" then
+    traffic_class = protocol:lower():find("quic", 1, true) and "unresolved_quic" or "unclassified"
+  end
+
+  if intel ~= "" then detection = "intelligence" end
+  return application, protocol, service, domain, traffic_class, detection,
+    (intel ~= "" and intel or "none")
 end
 
 local function scrape()
@@ -89,15 +215,20 @@ local function scrape()
   local flows_metric = metric("openwrt_netify_application_flows_total", "counter")
   local active_metric = metric("openwrt_netify_active_flows", "gauge")
   local classified_metric = metric("openwrt_netify_classified_ratio", "gauge")
+  local service_metric = metric("openwrt_netify_service_classified_ratio", "gauge")
+  local hostname_metric = metric("openwrt_netify_hostname_visibility_ratio", "gauge")
 
   local snapshot = read_json(snapshot_path)
   if not snapshot or not snapshot.flows or not snapshot.flows["__LAN_DEVICE__"] then
     active_metric({}, 0)
     classified_metric({}, 0)
+    service_metric({}, 0)
+    hostname_metric({}, 0)
     return
   end
 
-  local state = read_json(state_path) or {version = 1, seen = {}, totals = {}}
+  local state = read_json(state_path) or {version = 2, seen = {}, totals = {}}
+  if state.version ~= 2 then state = {version = 2, seen = {}, totals = {}} end
   state.seen = state.seen or {}
   state.totals = state.totals or {}
 
@@ -106,6 +237,8 @@ local function scrape()
   local now = os.time()
   local active = 0
   local classified = 0
+  local service_classified = 0
+  local hostname_visible = 0
 
   for _, flow in ipairs(snapshot.flows["__LAN_DEVICE__"]) do
     local ip = safe(flow.local_ip)
@@ -114,10 +247,12 @@ local function scrape()
     local proto_number = tonumber(flow.ip_protocol) or 0
     if ip ~= "" and mac ~= "" and digest ~= "" and (proto_number == 6 or proto_number == 17) then
       active = active + 1
-      local app, protocol = display_application(flow)
+      local app, protocol, service, domain, traffic_class, detection, intel = classify(flow)
       if safe(flow.detected_application_name) ~= "" and safe(flow.detected_application_name) ~= "Unknown" then
         classified = classified + 1
       end
+      if service ~= "Unknown" then service_classified = service_classified + 1 end
+      if domain ~= "Unknown" then hostname_visible = hostname_visible + 1 end
 
       local transport = proto_number == 6 and "tcp" or "udp"
       local wan = wan_map[tuple_key(transport, ip, flow.local_port, safe(flow.other_ip), flow.other_port)] or "unknown"
@@ -125,12 +260,18 @@ local function scrape()
       local labels = {
         application = app,
         protocol = protocol,
+        service = service,
+        domain = domain,
+        traffic_class = traffic_class,
+        detection = detection,
+        intelligence = intel,
         wan = wan,
         ip = ip,
         mac = mac,
         device_name = name
       }
-      local label_key = table.concat({app, protocol, wan, ip, mac, name}, "\t")
+      local label_key = table.concat({app, protocol, service, domain, traffic_class, detection,
+        intel, wan, ip, mac, name}, "\t")
       local previous = state.seen[digest]
       local up = tonumber(flow.local_bytes) or 0
       local down = tonumber(flow.other_bytes) or 0
@@ -161,10 +302,14 @@ local function scrape()
     local base = total.labels
     local upload_labels = {
       application = base.application, protocol = base.protocol, wan = base.wan,
+      service = base.service, domain = base.domain, traffic_class = base.traffic_class,
+      detection = base.detection, intelligence = base.intelligence,
       ip = base.ip, mac = base.mac, device_name = base.device_name, direction = "upload"
     }
     local download_labels = {
       application = base.application, protocol = base.protocol, wan = base.wan,
+      service = base.service, domain = base.domain, traffic_class = base.traffic_class,
+      detection = base.detection, intelligence = base.intelligence,
       ip = base.ip, mac = base.mac, device_name = base.device_name, direction = "download"
     }
     bytes_metric(upload_labels, total.upload or 0)
@@ -174,6 +319,8 @@ local function scrape()
 
   active_metric({}, active)
   classified_metric({}, active > 0 and classified / active or 0)
+  service_metric({}, active > 0 and service_classified / active or 0)
+  hostname_metric({}, active > 0 and hostname_visible / active or 0)
   write_json(state_path, state)
 end
 
