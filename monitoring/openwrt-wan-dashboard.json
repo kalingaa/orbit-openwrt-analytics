@@ -1,0 +1,165 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Back to Firewall Overview", "tooltip": "Open the main dashboard", "type": "link", "url": "/d/openwrt-firewall-analytics/openwrt-firewall-analytics"}
+  ],
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"mappings": [{"options": {"0": {"color": "red", "text": "DOWN"}, "1": {"color": "green", "text": "UP"}}, "type": "value"}], "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}, "overrides": []},
+      "gridPos": {"h": 4, "w": 12, "x": 0, "y": 0},
+      "id": 1,
+      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "mwan3_interface_up{job=\"openwrt\",router=\"__ROUTER_LABEL__\",interface=~\"$wan\"}", "legendFormat": "{{interface}}", "range": true, "refId": "A"}],
+      "title": "WAN Status",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 12, "x": 12, "y": 0},
+      "id": 2,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "mwan3_interface_online{job=\"openwrt\",router=\"__ROUTER_LABEL__\",interface=~\"$wan\"}", "legendFormat": "{{interface}}", "range": true, "refId": "A"}],
+      "title": "WAN Online Time",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes", "color": {"mode": "palette-classic"}}, "overrides": [{"matcher": {"id": "byName", "options": "Download"}, "properties": [{"id": "color", "value": {"fixedColor": "blue", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "Upload"}, "properties": [{"id": "color", "value": {"fixedColor": "orange", "mode": "fixed"}}]}]},
+      "gridPos": {"h": 5, "w": 8, "x": 0, "y": 4},
+      "id": 3,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [
+        {"editorMode": "code", "expr": "sum(increase(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN1_NAME__\"})", "instant": true, "legendFormat": "Download", "range": false, "refId": "A"},
+        {"editorMode": "code", "expr": "sum(increase(node_network_transmit_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN1_NAME__\"})", "instant": true, "legendFormat": "Upload", "range": false, "refId": "B"}
+      ],
+      "title": "__WAN1_NAME__ — Usage During Selected Time Range",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes", "color": {"mode": "palette-classic"}}, "overrides": [{"matcher": {"id": "byName", "options": "Download"}, "properties": [{"id": "color", "value": {"fixedColor": "blue", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "Upload"}, "properties": [{"id": "color", "value": {"fixedColor": "orange", "mode": "fixed"}}]}]},
+      "gridPos": {"h": 5, "w": 8, "x": 8, "y": 4},
+      "id": 8,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [
+        {"editorMode": "code", "expr": "sum(increase(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN2_NAME__\"})", "instant": true, "legendFormat": "Download", "range": false, "refId": "A"},
+        {"editorMode": "code", "expr": "sum(increase(node_network_transmit_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN2_NAME__\"})", "instant": true, "legendFormat": "Upload", "range": false, "refId": "B"}
+      ],
+      "title": "__WAN2_NAME__ — Usage During Selected Time Range",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes", "color": {"mode": "palette-classic"}}, "overrides": [{"matcher": {"id": "byName", "options": "Download"}, "properties": [{"id": "color", "value": {"fixedColor": "blue", "mode": "fixed"}}]}, {"matcher": {"id": "byName", "options": "Upload"}, "properties": [{"id": "color", "value": {"fixedColor": "orange", "mode": "fixed"}}]}]},
+      "gridPos": {"h": 5, "w": 8, "x": 16, "y": 4},
+      "id": 9,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [
+        {"editorMode": "code", "expr": "sum(increase(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN3_NAME__\"})", "instant": true, "legendFormat": "Download", "range": false, "refId": "A"},
+        {"editorMode": "code", "expr": "sum(increase(node_network_transmit_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN3_NAME__\"})", "instant": true, "legendFormat": "Upload", "range": false, "refId": "B"}
+      ],
+      "title": "__WAN3_NAME__ — Usage During Selected Time Range",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "si:bps"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 9},
+      "id": 4,
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "max_over_time((sum by (wan) (irate(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[1m]) * 8 * on(device) group_left(wan) openwrt_wan_info{wan=~\"$wan\"}))[$__interval:5s])", "legendFormat": "Download {{wan}}", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "max_over_time((sum by (wan) (irate(node_network_transmit_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[1m]) * 8 * on(device) group_left(wan) openwrt_wan_info{wan=~\"$wan\"}))[$__interval:5s])", "legendFormat": "Upload {{wan}}", "range": true, "refId": "B"}
+      ],
+      "title": "WAN Bandwidth Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"links": [{"targetBlank": false, "title": "Open ${__field.labels.device_name} device analytics", "url": "/d/openwrt-device-analytics/openwrt-device-analytics?${__url_time_range}&var-device_mac=${__field.labels.mac}&var-device_ip=${__field.labels.ip}"}], "unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 12, "w": 12, "x": 0, "y": 38},
+      "id": 10,
+      "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "topk(30, sum by (wan, ip, mac, device_name) (increase(openwrt_wan_device_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=~\"$wan\",direction=\"download\"}[$__range])))", "instant": true, "legendFormat": "{{wan}} / {{device_name}} / {{ip}}", "range": false, "refId": "A"}],
+      "title": "Downloaded by Device on Selected WAN",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"links": [{"targetBlank": false, "title": "Open ${__field.labels.device_name} device analytics", "url": "/d/openwrt-device-analytics/openwrt-device-analytics?${__url_time_range}&var-device_mac=${__field.labels.mac}&var-device_ip=${__field.labels.ip}"}], "unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 12, "w": 12, "x": 12, "y": 38},
+      "id": 11,
+      "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "topk(30, sum by (wan, ip, mac, device_name) (increase(openwrt_wan_device_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=~\"$wan\",direction=\"upload\"}[$__range])))", "instant": true, "legendFormat": "{{wan}} / {{device_name}} / {{ip}}", "range": false, "refId": "A"}],
+      "title": "Uploaded by Device on Selected WAN",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 18},
+      "id": 5,
+      "options": {"displayMode": "gradient", "minVizHeight": 14, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [
+        {"editorMode": "code", "expr": "topk(25, sum by (wan, application) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=~\"$wan\"}[$__range])))", "instant": true, "legendFormat": "{{wan}} / {{application}}", "range": false, "refId": "A"}
+      ],
+      "title": "Applications — DPI Classified",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 10, "w": 12, "x": 0, "y": 28},
+      "id": 6,
+      "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "topk(20, sum by (wan, application) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=~\"$wan\",direction=\"download\"}[$__range])))", "instant": true, "legendFormat": "{{wan}} / {{application}}", "range": false, "refId": "A"}],
+      "title": "Downloaded by Application — DPI",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 10, "w": 12, "x": 12, "y": 28},
+      "id": 7,
+      "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "topk(20, sum by (wan, application) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=~\"$wan\",direction=\"upload\"}[$__range])))", "instant": true, "legendFormat": "{{wan}} / {{application}}", "range": false, "refId": "A"}],
+      "title": "Uploaded by Application — DPI",
+      "type": "bargauge"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 41,
+  "tags": ["openwrt", "mwan3", "wan-detail"],
+  "templating": {
+    "list": [
+      {
+        "current": {"selected": true, "text": "All", "value": "$__all"},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "definition": "label_values(openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}, wan)",
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "WAN",
+        "multi": true,
+        "name": "wan",
+        "options": [],
+        "query": {"query": "label_values(openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}, wan)", "refId": "StandardVariableQuery"},
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "OpenWrt WAN Analytics",
+  "uid": "openwrt-wan-analytics",
+  "version": 1
+}

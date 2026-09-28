@@ -1,0 +1,30 @@
+# Copy this file to config.env and edit it. Never commit config.env.
+
+# Router identity and access used by manage.sh.
+ROUTER_ADDRESS=192.0.2.1
+ROUTER_SSH_USER=root
+ROUTER_SSH_PORT=22
+ROUTER_LABEL=openwrt-router
+ROUTER_EXPORTER_PORT=9100
+
+# LAN and hostname discovery.
+LAN_CIDR=192.0.2.0/24
+LAN_DEVICE=br-lan
+LAN_DEVICE=br-lan
+LOCAL_DOMAIN=home.arpa
+# Comma-separated DNS servers. Leave empty to use only OpenWrt/LuCI hints.
+DNS_SERVERS=192.0.2.1
+
+# One to three OpenWrt network interface names and their Linux devices.
+# Entries are positional: WAN_NAMES[0] uses WAN_DEVICES[0].
+WAN_NAMES=wan
+WAN_DEVICES=pppoe-wan
+
+# Analytics server access used by manage.sh.
+SERVER_ADDRESS=192.0.2.10
+SERVER_SSH_USER=analytics
+SERVER_SSH_PORT=22
+
+# Prometheus retention. The first limit reached wins.
+PROMETHEUS_RETENTION_TIME=2y
+PROMETHEUS_RETENTION_SIZE=40GB

@@ -1,0 +1,23 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Render example configuration
+        run: CONFIG=config.example ./manage.sh render
+      - name: Validate rendered configuration
+        run: CONFIG=config.example ./manage.sh test
+      - name: Check shell scripts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          shellcheck manage.sh scripts/*.sh

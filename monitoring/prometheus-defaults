@@ -1,0 +1,1 @@
+ARGS="--storage.tsdb.retention.time=__PROMETHEUS_RETENTION_TIME__ --storage.tsdb.retention.size=__PROMETHEUS_RETENTION_SIZE__ --query.max-concurrency=8"

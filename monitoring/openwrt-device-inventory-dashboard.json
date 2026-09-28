@@ -1,0 +1,123 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Back to Firewall Overview", "tooltip": "Open the main overview", "type": "link", "url": "/d/openwrt-firewall-analytics/openwrt-firewall-analytics"},
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Data Quality", "tooltip": "Compare accounting sources", "type": "link", "url": "/d/openwrt-data-quality/openwrt-data-quality"}
+  ],
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}, "overrides": []},
+      "gridPos": {"h": 4, "w": 5, "x": 0, "y": 0},
+      "id": 1,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "count(count by (mac) (openwrt_device_inventory_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}))", "instant": true, "legendFormat": "Known Devices", "range": false, "refId": "A"}],
+      "title": "Known Devices",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}, "overrides": []},
+      "gridPos": {"h": 4, "w": 5, "x": 5, "y": 0},
+      "id": 2,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "sum(openwrt_device_mac_online{job=\"openwrt\",router=\"__ROUTER_LABEL__\"})", "instant": true, "legendFormat": "Online", "range": false, "refId": "A"}],
+      "title": "Active in Last 5 Minutes",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 1}]}}, "overrides": []},
+      "gridPos": {"h": 4, "w": 5, "x": 10, "y": 0},
+      "id": 3,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "count(count by (mac) (openwrt_device_inventory_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\",device_name=\"unknown\"}))", "instant": true, "legendFormat": "Unnamed", "range": false, "refId": "A"}],
+      "title": "Devices Without Names",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "blue", "value": 1}]}}, "overrides": []},
+      "gridPos": {"h": 4, "w": 5, "x": 15, "y": 0},
+      "id": 4,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "count(count by (mac) (openwrt_device_first_seen_seconds{job=\"openwrt\",router=\"__ROUTER_LABEL__\"} > time() - 86400))", "instant": true, "legendFormat": "New", "range": false, "refId": "A"}],
+      "title": "First Seen in Last 24 Hours",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 4, "x": 20, "y": 0},
+      "id": 5,
+      "options": {"colorMode": "none", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "time() - min(openwrt_device_first_seen_seconds{job=\"openwrt\",router=\"__ROUTER_LABEL__\"})", "instant": true, "legendFormat": "Tracking Age", "range": false, "refId": "A"}],
+      "title": "Inventory Tracking Age",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "device_name"}, "properties": [{"id": "displayName", "value": "Device Name"}, {"id": "links", "value": [{"targetBlank": false, "title": "Open device analytics", "url": "/d/openwrt-device-analytics/openwrt-device-analytics?${__url_time_range}&var-device_mac=${__data.fields.mac}&var-device_ip=${__data.fields.ip}"}]}]},
+          {"matcher": {"id": "byName", "options": "mac"}, "properties": [{"id": "displayName", "value": "MAC"}]},
+          {"matcher": {"id": "byName", "options": "ip"}, "properties": [{"id": "displayName", "value": "IP"}]},
+          {"matcher": {"id": "byName", "options": "family"}, "properties": [{"id": "displayName", "value": "Family"}]},
+          {"matcher": {"id": "byName", "options": "name_source"}, "properties": [{"id": "displayName", "value": "Name Source"}]},
+          {"matcher": {"id": "byName", "options": "First Seen"}, "properties": [{"id": "unit", "value": "dateTimeAsIso"}]},
+          {"matcher": {"id": "byName", "options": "Last Seen"}, "properties": [{"id": "unit", "value": "dateTimeAsIso"}]},
+          {"matcher": {"id": "byName", "options": "Online"}, "properties": [{"id": "mappings", "value": [{"options": {"0": {"color": "red", "text": "Offline"}, "1": {"color": "green", "text": "Online"}}, "type": "value"}]}, {"id": "custom.cellOptions", "value": {"type": "color-text"}}]}
+        ]
+      },
+      "gridPos": {"h": 17, "w": 24, "x": 0, "y": 4},
+      "id": 6,
+      "options": {"cellHeight": "sm", "footer": {"countRows": false, "fields": "", "reducer": ["sum"], "show": false}, "showHeader": true, "sortBy": [{"desc": true, "displayName": "Last Seen"}]},
+      "targets": [
+        {"editorMode": "code", "expr": "openwrt_device_first_seen_seconds{job=\"openwrt\",router=\"__ROUTER_LABEL__\"} * 1000", "format": "table", "instant": true, "legendFormat": "__auto", "range": false, "refId": "A"},
+        {"editorMode": "code", "expr": "openwrt_device_last_seen_seconds{job=\"openwrt\",router=\"__ROUTER_LABEL__\"} * 1000", "format": "table", "instant": true, "legendFormat": "__auto", "range": false, "refId": "B"},
+        {"editorMode": "code", "expr": "openwrt_device_online{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}", "format": "table", "instant": true, "legendFormat": "__auto", "range": false, "refId": "C"}
+      ],
+      "title": "Device Inventory — Click a Name for Device Analytics",
+      "transformations": [
+        {"id": "joinByField", "options": {"byField": "device_id", "mode": "outer"}},
+        {"id": "organize", "options": {"excludeByName": {"Time #A": true, "Time #B": true, "Time #C": true, "device_id": true}, "indexByName": {"device_name": 0, "Value #C": 1, "Value #B": 2, "Value #A": 3, "ip": 4, "mac": 5, "name_source": 6, "family": 7}, "renameByName": {"Value #A": "First Seen", "Value #B": "Last Seen", "Value #C": "Online"}}}
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 16, "x": 0, "y": 21},
+      "id": 7,
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "single", "sort": "none"}},
+      "targets": [{"editorMode": "code", "expr": "sum(openwrt_device_mac_online{job=\"openwrt\",router=\"__ROUTER_LABEL__\"})", "legendFormat": "Active devices", "range": true, "refId": "A"}],
+      "title": "Active Device Count Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 8, "x": 16, "y": 21},
+      "id": 8,
+      "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "sort_desc(topk(20, openwrt_device_ip_count{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}))", "instant": true, "legendFormat": "{{device_name}} | {{mac}}", "range": false, "refId": "A"}],
+      "title": "IP Addresses Seen per MAC",
+      "type": "bargauge"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "tags": ["openwrt", "inventory", "first-seen", "last-seen"],
+  "templating": {"list": []},
+  "time": {"from": "now-24h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "OpenWrt Device Inventory",
+  "uid": "openwrt-device-inventory",
+  "version": 1
+}

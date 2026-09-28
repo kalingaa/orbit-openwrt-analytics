@@ -1,0 +1,125 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Back to Firewall Overview", "tooltip": "Open the all-device overview", "type": "link", "url": "/d/openwrt-firewall-analytics/openwrt-firewall-analytics"}
+  ],
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}, "overrides": []},
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 0},
+      "id": 1,
+      "options": {"colorMode": "none", "graphMode": "none", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "name", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "vector(1)", "instant": true, "legendFormat": "${application:text}", "range": false, "refId": "A"}],
+      "title": "Selected Application",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 16, "x": 8, "y": 0},
+      "id": 2,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [
+        {"editorMode": "code", "expr": "sum(increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",application=~\"$application\",direction=\"download\"}[$__range]))", "instant": true, "legendFormat": "Downloaded", "range": false, "refId": "A"},
+        {"editorMode": "code", "expr": "sum(increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",application=~\"$application\",direction=\"upload\"}[$__range]))", "instant": true, "legendFormat": "Uploaded", "range": false, "refId": "B"}
+      ],
+      "title": "Application Usage During Selected Time Range",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "application\\direction"},
+            "properties": [
+              {"id": "displayName", "value": "Application"},
+              {"id": "links", "value": [{"targetBlank": false, "title": "Open ${__value.text} application details", "url": "/d/openwrt-application-analytics/openwrt-application-analytics?${__url_time_range}&var-application=${__value.raw}"}]}
+            ]
+          },
+          {
+            "matcher": {"id": "byRegexp", "options": "/^(download|upload|Total)$/"},
+            "properties": [{"id": "unit", "value": "bytes"}, {"id": "decimals", "value": 2}]
+          }
+        ]
+      },
+      "gridPos": {"h": 12, "w": 24, "x": 0, "y": 4},
+      "id": 6,
+      "options": {"cellHeight": "sm", "footer": {"countRows": false, "fields": "", "reducer": ["sum"], "show": false}, "showHeader": true, "sortBy": [{"desc": true, "displayName": "Total"}]},
+      "targets": [
+        {"editorMode": "code", "expr": "sum by (application, direction) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",application=~\"$application\"}[$__range]))", "format": "table", "instant": true, "legendFormat": "__auto", "range": false, "refId": "A"}
+      ],
+      "title": "Applications by Usage — Click an Application for Device Details",
+      "transformations": [
+        {"id": "groupingToMatrix", "options": {"columnField": "direction", "emptyValue": "0", "rowField": "application", "valueField": "Value"}},
+        {"id": "calculateField", "options": {"alias": "Total", "binary": {"left": "download", "operator": "+", "right": "upload"}, "mode": "binary", "reduce": {"include": [], "reducer": "sum"}}}
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"links": [{"targetBlank": false, "title": "Open ${__field.labels.ip} device analytics", "url": "/d/openwrt-device-analytics/openwrt-device-analytics?${__url_time_range}&var-device_mac=${__field.labels.mac}&var-device_ip=${__field.labels.ip}"}], "unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 12, "w": 24, "x": 0, "y": 16},
+      "id": 3,
+      "options": {"displayMode": "gradient", "minVizHeight": 16, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "topk(50, sum by (ip, mac, device_name) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",application=~\"$application\"}[$__range])))", "instant": true, "legendFormat": "{{device_name}} | {{ip}} | {{mac}}", "range": false, "refId": "A"}],
+      "title": "Usage by Device — Click a Device for Details",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "si:bps"}, "overrides": []},
+      "gridPos": {"h": 10, "w": 16, "x": 0, "y": 28},
+      "id": 4,
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [{"editorMode": "code", "expr": "topk(15, sum by (ip, mac, device_name) (irate(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",application=~\"$application\"}[1m]) * 8))", "legendFormat": "{{device_name}} | {{ip}} | {{mac}}", "range": true, "refId": "A"}],
+      "title": "Application Traffic by Device Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 10, "w": 8, "x": 16, "y": 28},
+      "id": 5,
+      "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "topk(20, sum by (protocol) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",application=~\"$application\"}[$__range])))", "instant": true, "legendFormat": "{{protocol}}", "range": false, "refId": "A"}],
+      "title": "Detected Protocols",
+      "type": "bargauge"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 41,
+  "tags": ["openwrt", "nlbwmon", "application-detail"],
+  "templating": {
+    "list": [
+      {
+        "allValue": ".*",
+        "current": {"selected": true, "text": "All", "value": "$__all"},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "definition": "label_values(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}, application)",
+        "includeAll": true,
+        "label": "Application",
+        "multi": false,
+        "name": "application",
+        "options": [],
+        "query": {"query": "label_values(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}, application)", "refId": "StandardVariableQuery"},
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "OpenWrt Application Analytics",
+  "uid": "openwrt-application-analytics",
+  "version": 1
+}

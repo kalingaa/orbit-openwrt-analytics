@@ -1,0 +1,68 @@
+#!/bin/sh
+
+set -eu
+
+aliases_file="/etc/prometheus-device-names"
+cache_file="/tmp/prometheus-device-names.cache"
+
+refresh_names() {
+    if [ -x /usr/bin/prometheus-device-names-refresh ]; then
+        /usr/bin/prometheus-device-names-refresh >/dev/null 2>&1 &
+    fi
+}
+
+usage() {
+    echo "Usage:"
+    echo "  device-name list"
+    echo "  device-name set <mac> <name>"
+    echo "  device-name remove <mac>"
+}
+
+valid_mac() {
+    echo "$1" | grep -Eq '^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$'
+}
+
+action="${1:-}"
+case "$action" in
+    list)
+        if [ -f "$aliases_file" ]; then
+            sort "$aliases_file"
+        fi
+        ;;
+    set)
+        mac="${2:-}"
+        shift 2 || true
+        name="$*"
+        if ! valid_mac "$mac" || [ -z "$name" ]; then
+            usage >&2
+            exit 2
+        fi
+        name=$(printf '%s' "$name" | tr '\t\r\n' '   ')
+        touch "$aliases_file"
+        tmp=$(mktemp)
+        awk -v mac="$mac" 'tolower($1) != tolower(mac)' "$aliases_file" > "$tmp"
+        printf '%s %s\n' "$mac" "$name" >> "$tmp"
+        sort "$tmp" > "$aliases_file"
+        rm -f "$tmp" "$cache_file"
+        refresh_names
+        echo "Saved: $mac = $name"
+        ;;
+    remove)
+        mac="${2:-}"
+        if ! valid_mac "$mac"; then
+            usage >&2
+            exit 2
+        fi
+        touch "$aliases_file"
+        tmp=$(mktemp)
+        awk -v mac="$mac" 'tolower($1) != tolower(mac)' "$aliases_file" > "$tmp"
+        mv "$tmp" "$aliases_file"
+        rm -f "$cache_file"
+        refresh_names
+        echo "Removed: $mac"
+        ;;
+    *)
+        usage >&2
+        exit 2
+        ;;
+esac

@@ -1,0 +1,150 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Back to Firewall Overview", "tooltip": "Open the live overview", "type": "link", "url": "/d/openwrt-firewall-analytics/openwrt-firewall-analytics"}
+  ],
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "si:bps"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 0},
+      "id": 1,
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "openwrt:interface_receive_bps:1m_max{device=~\"eth.*|br-lan\"}", "legendFormat": "RX {{device}}", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "openwrt:interface_transmit_bps:1m_max{device=~\"eth.*|br-lan\"}", "legendFormat": "TX {{device}}", "range": true, "refId": "B"}
+      ],
+      "title": "Interface Peak Bandwidth — 1 Minute Rollup",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "si:bps"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 0},
+      "id": 2,
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "openwrt:device_download_bps:1m_max{mac=~\"$device_mac\",ip=~\"$device_ip\"}", "legendFormat": "Download {{ip}}", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "openwrt:device_upload_bps:1m_max{mac=~\"$device_mac\",ip=~\"$device_ip\"}", "legendFormat": "Upload {{ip}}", "range": true, "refId": "B"}
+      ],
+      "title": "Device Peak Bandwidth — 1 Minute Rollup",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 9},
+      "id": 3,
+      "options": {"legend": {"calcs": ["sum"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "openwrt:device_download_bytes:1h{mac=~\"$device_mac\",ip=~\"$device_ip\"}", "legendFormat": "Downloaded {{ip}}", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "openwrt:device_upload_bytes:1h{mac=~\"$device_mac\",ip=~\"$device_ip\"}", "legendFormat": "Uploaded {{ip}}", "range": true, "refId": "B"}
+      ],
+      "title": "Hourly Device Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 9},
+      "id": 4,
+      "options": {"legend": {"calcs": ["sum"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "topk(20, sum by (layer7) (openwrt:device_application_bytes:1h{mac=~\"$device_mac\",ip=~\"$device_ip\",layer7=~\"$application\"}))", "legendFormat": "{{layer7}}", "range": true, "refId": "A"}
+      ],
+      "title": "Hourly Application Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 18},
+      "id": 5,
+      "options": {"legend": {"calcs": ["sum"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "openwrt:device_download_bytes:1d{mac=~\"$device_mac\",ip=~\"$device_ip\"}", "legendFormat": "Downloaded {{ip}}", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "openwrt:device_upload_bytes:1d{mac=~\"$device_mac\",ip=~\"$device_ip\"}", "legendFormat": "Uploaded {{ip}}", "range": true, "refId": "B"}
+      ],
+      "title": "Daily Device Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 18},
+      "id": 6,
+      "options": {"legend": {"calcs": ["sum"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "topk(20, sum by (layer7) (openwrt:device_application_bytes:1d{mac=~\"$device_mac\",ip=~\"$device_ip\",layer7=~\"$application\"}))", "legendFormat": "{{layer7}}", "range": true, "refId": "A"}
+      ],
+      "title": "Daily Application Usage",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "1m",
+  "schemaVersion": 41,
+  "tags": ["openwrt", "long-term", "recording-rules"],
+  "templating": {
+    "list": [
+      {
+        "current": {"selected": true, "text": "All", "value": "$__all"},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "definition": "label_values(openwrt:device_download_bps:1m_max, mac)",
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "Device MAC",
+        "multi": false,
+        "name": "device_mac",
+        "options": [],
+        "query": {"query": "label_values(openwrt:device_download_bps:1m_max, mac)", "refId": "StandardVariableQuery"},
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {"selected": true, "text": "All", "value": "$__all"},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "definition": "label_values(openwrt:device_download_bps:1m_max{mac=~\"$device_mac\"}, ip)",
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "Device IP",
+        "multi": false,
+        "name": "device_ip",
+        "options": [],
+        "query": {"query": "label_values(openwrt:device_download_bps:1m_max{mac=~\"$device_mac\"}, ip)", "refId": "StandardVariableQuery"},
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {"selected": true, "text": "All", "value": "$__all"},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "definition": "label_values(openwrt:device_application_bps:1m_max, layer7)",
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "Application",
+        "multi": false,
+        "name": "application",
+        "options": [],
+        "query": {"query": "label_values(openwrt:device_application_bps:1m_max, layer7)", "refId": "StandardVariableQuery"},
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {"from": "now-30d", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "OpenWrt Long-Term Analytics",
+  "uid": "openwrt-long-term-analytics",
+  "version": 1,
+  "weekStart": ""
+}

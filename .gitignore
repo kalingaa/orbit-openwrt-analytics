@@ -1,0 +1,21 @@
+# Local deployment configuration and credentials
+config.env
+server.txt
+*.key
+*.pem
+
+# Rendered and runtime data
+build/
+backups/
+.cache/
+*.log
+
+# Site-specific operator notes and aliases
+OPENWRT_ANALYTICS_MANUAL.md
+monitoring/prometheus-device-names
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

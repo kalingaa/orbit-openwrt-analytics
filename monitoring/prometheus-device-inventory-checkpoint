@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -eu
+
+runtime=/tmp/prometheus-device-inventory-state.json
+persistent=/var/lib/prometheus-device-inventory-state.json
+
+[ -s "$runtime" ] || exit 0
+umask 077
+cp "$runtime" "$persistent.tmp"
+mv "$persistent.tmp" "$persistent"

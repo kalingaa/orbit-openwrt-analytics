@@ -1,0 +1,241 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Back to Firewall Overview", "tooltip": "Open the all-device overview", "type": "link", "url": "/d/openwrt-firewall-analytics/openwrt-firewall-analytics"},
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Device Inventory", "tooltip": "First seen, last seen and online devices", "type": "link", "url": "/d/openwrt-device-inventory/openwrt-device-inventory"},
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Data Quality", "tooltip": "Collector reconciliation and data health", "type": "link", "url": "/d/openwrt-data-quality/openwrt-data-quality"}
+  ],
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"mappings": [], "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]}}, "overrides": []},
+      "gridPos": {"h": 4, "w": 16, "x": 0, "y": 0},
+      "id": 1,
+      "options": {"colorMode": "none", "graphMode": "none", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "name", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "nlbwmon_device_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}", "legendFormat": "{{device_name}}  |  {{mac}}  |  {{ip}}", "range": true, "refId": "A"}],
+      "title": "Selected Device Identity",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"mappings": [], "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 0},
+      "id": 2,
+      "options": {"colorMode": "none", "graphMode": "none", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "name", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "nlbwmon_device_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\"}", "legendFormat": "{{ip}}", "range": true, "refId": "A"}],
+      "title": "IPs Seen for Selected MAC",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 24, "x": 0, "y": 4},
+      "id": 3,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [
+        {"editorMode": "code", "expr": "sum(increase(nlbwmon_rx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[$__range]))", "legendFormat": "Downloaded", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "sum(increase(nlbwmon_tx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[$__range]))", "legendFormat": "Uploaded", "range": true, "refId": "B"}
+      ],
+      "title": "Usage During Selected Time Range",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "si:bps"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 9},
+      "id": 5,
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "max_over_time((sum(irate(nlbwmon_rx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[1m])) * 8)[$__interval:5s])", "legendFormat": "Download", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "max_over_time((sum(irate(nlbwmon_tx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[1m])) * 8)[$__interval:5s])", "legendFormat": "Upload", "range": true, "refId": "B"}
+      ],
+      "title": "Bandwidth Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 10, "w": 12, "x": 0, "y": 18},
+      "id": 6,
+      "options": {"displayMode": "gradient", "minVizHeight": 10, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "sort_desc(topk(20, sum by (application) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[$__range]))))", "instant": true, "legendFormat": "{{application}}", "range": false, "refId": "A"}],
+      "title": "Applications — DPI Classified",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "si:bps"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 28},
+      "id": 7,
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [{"editorMode": "code", "expr": "topk(10, sum by (application) (irate(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[1m]) * 8))", "legendFormat": "{{application}}", "range": true, "refId": "A"}],
+      "title": "Application Bandwidth Over Time — DPI",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 10, "w": 12, "x": 12, "y": 18},
+      "id": 8,
+      "options": {"displayMode": "gradient", "minVizHeight": 10, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "sort_desc(topk(20, sum by (protocol) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[$__range]))))", "instant": true, "legendFormat": "{{protocol}}", "range": false, "refId": "A"}],
+      "title": "Protocols — DPI Classified",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "dateTimeAsIso"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 37},
+      "id": 9,
+      "options": {"colorMode": "none", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "min(openwrt_device_first_seen_seconds{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}) * 1000", "instant": true, "legendFormat": "First Seen", "range": false, "refId": "A"}],
+      "title": "Inventory First Seen",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "dateTimeAsIso"}, "overrides": []},
+      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 37},
+      "id": 10,
+      "options": {"colorMode": "none", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "max(openwrt_device_last_seen_seconds{job=\"openwrt\",router=\"__ROUTER_LABEL__\"} and on(device_id) openwrt_device_inventory_info{mac=~\"$device_mac\",ip=~\"$device_ip\"}) * 1000", "instant": true, "legendFormat": "Last Seen", "range": false, "refId": "A"}],
+      "title": "Inventory Last Seen",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"mappings": [{"options": {"0": {"color": "red", "text": "OFFLINE"}, "1": {"color": "green", "text": "ONLINE"}}, "type": "value"}], "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}, "overrides": []},
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 37},
+      "id": 11,
+      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "max(openwrt_device_online{job=\"openwrt\",router=\"__ROUTER_LABEL__\"} and on(device_id) openwrt_device_inventory_info{mac=~\"$device_mac\",ip=~\"$device_ip\"})", "instant": true, "legendFormat": "Recent Activity", "range": false, "refId": "A"}],
+      "title": "Active in Last 5 Minutes",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 0, "y": 41},
+      "id": 12,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "(sum(increase(nlbwmon_rx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[$__range])) + sum(increase(nlbwmon_tx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[$__range]))) / ($__range_s / 86400)", "instant": true, "legendFormat": "Per Day", "range": false, "refId": "A"}],
+      "title": "Daily Usage Run Rate in Selected Range",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "si:bps"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 6, "y": 41},
+      "id": 13,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [
+        {"editorMode": "code", "expr": "max(max_over_time(openwrt:device_download_bps:1m_max{mac=~\"$device_mac\",ip=~\"$device_ip\"}[$__range]))", "instant": true, "legendFormat": "Download", "range": false, "refId": "A"},
+        {"editorMode": "code", "expr": "max(max_over_time(openwrt:device_upload_bps:1m_max{mac=~\"$device_mac\",ip=~\"$device_ip\"}[$__range]))", "instant": true, "legendFormat": "Upload", "range": false, "refId": "B"}
+      ],
+      "title": "Peak 1-Minute Bandwidth",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"max": 1, "min": 0, "unit": "percentunit"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 12, "y": 41},
+      "id": 14,
+      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "sum(increase(nlbwmon_tx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[$__range])) / clamp_min(sum(increase(nlbwmon_rx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[$__range])) + sum(increase(nlbwmon_tx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[$__range])), 1)", "instant": true, "legendFormat": "Upload Share", "range": false, "refId": "A"}],
+      "title": "Upload Share of Traffic",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 6, "x": 18, "y": 41},
+      "id": 15,
+      "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
+      "targets": [{"editorMode": "code", "expr": "count(sum by (application) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[$__range])) > 0)", "instant": true, "legendFormat": "Applications", "range": false, "refId": "A"}],
+      "title": "Application Diversity",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 16, "x": 0, "y": 46},
+      "id": 16,
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
+      "targets": [
+        {"editorMode": "code", "expr": "sum(increase(nlbwmon_rx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[24h]))", "interval": "1h", "legendFormat": "Rolling 24h Download", "range": true, "refId": "A"},
+        {"editorMode": "code", "expr": "sum(increase(nlbwmon_tx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[24h]))", "interval": "1h", "legendFormat": "Rolling 24h Upload", "range": true, "refId": "B"}
+      ],
+      "title": "Rolling 24-Hour Usage Trend",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 8, "x": 16, "y": 46},
+      "id": 17,
+      "options": {"displayMode": "gradient", "minVizHeight": 18, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "sort_desc(sum by (wan) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[$__range])))", "instant": true, "legendFormat": "{{wan}}", "range": false, "refId": "A"}],
+      "title": "WAN Preference in Selected Range",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "fieldConfig": {"defaults": {"unit": "si:bps"}, "overrides": []},
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 55},
+      "id": 18,
+      "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "single", "sort": "none"}},
+      "targets": [{"editorMode": "code", "expr": "avg_over_time((sum(irate(nlbwmon_rx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[1m]) + irate(nlbwmon_tx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\",mac=~\"$device_mac\",ip=~\"$device_ip\"}[1m])) * 8)[1h:5m])", "legendFormat": "1-hour smoothed activity", "range": true, "refId": "A"}],
+      "title": "Behavior Pattern — One-Hour Smoothed Activity",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 41,
+  "tags": ["openwrt", "nlbwmon", "device-detail"],
+  "templating": {
+    "list": [
+      {
+        "current": {"selected": true, "text": "All", "value": "$__all"},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "definition": "query_result(label_join(nlbwmon_device_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}, \"device\", \" | \", \"device_name\", \"mac\"))",
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "Device Name / MAC",
+        "multi": false,
+        "name": "device_mac",
+        "options": [],
+        "query": {"query": "query_result(label_join(nlbwmon_device_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}, \"device\", \" | \", \"device_name\", \"mac\"))", "refId": "StandardVariableQuery"},
+        "refresh": 1,
+        "regex": "/device=\"(?<text>[^\"]+)\".*mac=\"(?<value>[^\"]+)\"/",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {"selected": true, "text": "All", "value": "$__all"},
+        "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+        "definition": "query_result(label_join(nlbwmon_device_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}, \"device\", \" | \", \"device_name\", \"ip\"))",
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "Device Name / IP",
+        "multi": false,
+        "name": "device_ip",
+        "options": [],
+        "query": {"query": "query_result(label_join(nlbwmon_device_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}, \"device\", \" | \", \"device_name\", \"ip\"))", "refId": "StandardVariableQuery"},
+        "refresh": 1,
+        "regex": "/device=\"(?<text>[^\"]+)\".*ip=\"(?<value>[^\"]+)\"/",
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "OpenWrt Device Analytics",
+  "uid": "openwrt-device-analytics",
+  "version": 1
+}

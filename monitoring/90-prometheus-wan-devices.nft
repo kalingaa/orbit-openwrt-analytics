@@ -1,0 +1,13 @@
+# Passive dynamic per-device counters for each WAN. These rules only count;
+# they never accept, drop, mark, redirect, or otherwise alter traffic.
+
+chain prometheus_wan_devices {
+  type filter hook forward priority -2; policy accept;
+
+  iifname "__WAN1_DEVICE__" meter prom_wan_device___WAN1_NAME___download { ip daddr counter }
+  oifname "__WAN1_DEVICE__" meter prom_wan_device___WAN1_NAME___upload { ip saddr counter }
+  iifname "__WAN2_DEVICE__" meter prom_wan_device___WAN2_NAME___download { ip daddr counter }
+  oifname "__WAN2_DEVICE__" meter prom_wan_device___WAN2_NAME___upload { ip saddr counter }
+  iifname "__WAN3_DEVICE__" meter prom_wan_device___WAN3_NAME___download { ip daddr counter }
+  oifname "__WAN3_DEVICE__" meter prom_wan_device___WAN3_NAME___upload { ip saddr counter }
+}

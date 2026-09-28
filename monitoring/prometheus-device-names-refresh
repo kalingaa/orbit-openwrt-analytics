@@ -1,0 +1,79 @@
+#!/usr/bin/lua
+
+local json = require "cjson"
+local cache_path = "/tmp/prometheus-device-names.cache"
+local names = {}
+local devices = {}
+
+local function safe(value)
+    if value == nil or value == json.null then return "" end
+    return tostring(value):gsub('["\\\r\n\t]', '_')
+end
+
+local hints_pipe = io.popen("ubus call luci-rpc getHostHints 2>/dev/null")
+if hints_pipe then
+    local raw = hints_pipe:read("*a")
+    hints_pipe:close()
+    local ok, hints = pcall(json.decode, raw or "")
+    if ok and type(hints) == "table" then
+        for mac, hint in pairs(hints) do
+            if type(hint) == "table" and hint.name ~= nil then
+                names[string.upper(mac)] = safe(hint.name)
+            end
+        end
+    end
+end
+
+local aliases = io.open("/etc/prometheus-device-names", "r")
+if aliases then
+    for line in aliases:lines() do
+        local mac, name = line:match("^%s*([%x:]+)%s+(.+)%s*$")
+        if mac and name and line:sub(1, 1) ~= "#" then
+            names[string.upper(mac)] = safe(name)
+        end
+    end
+    aliases:close()
+end
+
+local nlbw = io.popen("nlbw -c json 2>/dev/null")
+if nlbw then
+    local raw = nlbw:read("*a")
+    nlbw:close()
+    local ok, report = pcall(json.decode, raw or "")
+    if ok and report and report.data then
+        for _, row in ipairs(report.data) do
+            local mac = string.upper(safe(row[4]))
+            local ip = safe(row[5])
+            if mac ~= "" and ip:match("^%d+%.%d+%.%d+%.%d+$") then
+                devices[mac] = devices[mac] or ip
+            end
+        end
+    end
+end
+
+local local_domain = "__LOCAL_DOMAIN__"
+local escaped_domain = local_domain:gsub("([^%w])", "%%%1")
+
+for mac, ip in pairs(devices) do
+    if names[mac] == nil then
+        for _, server in ipairs({__DNS_SERVERS_LUA__}) do
+            local pipe = io.popen("timeout 0.25 nslookup '" .. ip .. "' " .. server .. " 2>/dev/null")
+            if pipe then
+                local raw = pipe:read("*a")
+                pipe:close()
+                local hostname = raw and raw:match("name%s*=%s*([^%s]+)") or nil
+                if hostname then
+                    hostname = hostname:gsub("%.$", ""):gsub("%." .. escaped_domain .. "$", "")
+                    if hostname ~= "" then names[mac] = safe(hostname); break end
+                end
+            end
+        end
+    end
+end
+
+local tmp = cache_path .. ".refresh"
+local cache = assert(io.open(tmp, "w"))
+cache:write(tostring(os.time()), "\n")
+for mac, name in pairs(names) do cache:write(mac, "\t", name, "\n") end
+cache:close()
+assert(os.rename(tmp, cache_path))
