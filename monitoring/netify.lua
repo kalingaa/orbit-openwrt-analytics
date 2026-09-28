@@ -298,8 +298,8 @@ local function scrape()
     if not is_lan_ip(total.labels and total.labels.ip) then state.totals[key] = nil end
   end
 
-  local names = load_names()
-  local wan_map = load_wan_map()
+  local names = stream_fresh and {} or load_names()
+  local wan_map = stream_fresh and {} or load_wan_map()
   local active = 0
   local classified = 0
   local service_classified = 0
@@ -342,24 +342,24 @@ local function scrape()
       if service ~= "Unknown" then service_classified = service_classified + 1 end
       if domain ~= "Unknown" then hostname_visible = hostname_visible + 1 end
 
-      local transport = proto_number == 6 and "tcp" or "udp"
-      local wan = wan_map[tuple_key(transport, ip, flow.local_port, safe(flow.other_ip), flow.other_port)] or "unknown"
-      local name = names[string.upper(mac)] or "unknown"
-      local labels = {
-        application = app,
-        dpi_application = dpi_app,
-        protocol = protocol,
-        service = service,
-        domain = domain,
-        traffic_class = traffic_class,
-        detection = detection,
-        intelligence = intel,
-        wan = wan,
-        ip = ip,
-        mac = mac,
-        device_name = name
-      }
       if not stream_fresh then
+        local transport = proto_number == 6 and "tcp" or "udp"
+        local wan = wan_map[tuple_key(transport, ip, flow.local_port,
+          safe(flow.other_ip), flow.other_port)] or "unknown"
+        local labels = {
+          application = app,
+          dpi_application = dpi_app,
+          protocol = protocol,
+          service = service,
+          domain = domain,
+          traffic_class = traffic_class,
+          detection = detection,
+          intelligence = intel,
+          wan = wan,
+          ip = ip,
+          mac = mac,
+          device_name = names[string.upper(mac)] or "unknown"
+        }
         local label_key = totals_key(labels)
         local previous = state.seen[digest]
         local up = tonumber(flow.local_bytes) or 0

@@ -60,8 +60,8 @@
       "id": 16,
       "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
       "targets": [
-        {"editorMode": "code", "expr": "sum(increase(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN1_NAME__\"})", "instant": true, "legendFormat": "Download", "range": false, "refId": "A"},
-        {"editorMode": "code", "expr": "sum(increase(node_network_transmit_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN1_NAME__\"})", "instant": true, "legendFormat": "Upload", "range": false, "refId": "B"}
+        {"editorMode": "code", "expr": "sum(increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN1_NAME__\",direction=\"download\"}[$__range]))", "instant": true, "legendFormat": "Download", "range": false, "refId": "A"},
+        {"editorMode": "code", "expr": "sum(increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN1_NAME__\",direction=\"upload\"}[$__range]))", "instant": true, "legendFormat": "Upload", "range": false, "refId": "B"}
       ],
       "title": "__WAN1_NAME__ — Usage During Selected Time Range",
       "type": "stat"
@@ -73,8 +73,8 @@
       "id": 17,
       "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
       "targets": [
-        {"editorMode": "code", "expr": "sum(increase(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN2_NAME__\"})", "instant": true, "legendFormat": "Download", "range": false, "refId": "A"},
-        {"editorMode": "code", "expr": "sum(increase(node_network_transmit_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN2_NAME__\"})", "instant": true, "legendFormat": "Upload", "range": false, "refId": "B"}
+        {"editorMode": "code", "expr": "sum(increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN2_NAME__\",direction=\"download\"}[$__range]))", "instant": true, "legendFormat": "Download", "range": false, "refId": "A"},
+        {"editorMode": "code", "expr": "sum(increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN2_NAME__\",direction=\"upload\"}[$__range]))", "instant": true, "legendFormat": "Upload", "range": false, "refId": "B"}
       ],
       "title": "__WAN2_NAME__ — Usage During Selected Time Range",
       "type": "stat"
@@ -86,8 +86,8 @@
       "id": 18,
       "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
       "targets": [
-        {"editorMode": "code", "expr": "sum(increase(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN3_NAME__\"})", "instant": true, "legendFormat": "Download", "range": false, "refId": "A"},
-        {"editorMode": "code", "expr": "sum(increase(node_network_transmit_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN3_NAME__\"})", "instant": true, "legendFormat": "Upload", "range": false, "refId": "B"}
+        {"editorMode": "code", "expr": "sum(increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN3_NAME__\",direction=\"download\"}[$__range]))", "instant": true, "legendFormat": "Download", "range": false, "refId": "A"},
+        {"editorMode": "code", "expr": "sum(increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=\"__WAN3_NAME__\",direction=\"upload\"}[$__range]))", "instant": true, "legendFormat": "Upload", "range": false, "refId": "B"}
       ],
       "title": "__WAN3_NAME__ — Usage During Selected Time Range",
       "type": "stat"

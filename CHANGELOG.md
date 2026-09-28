@@ -37,6 +37,13 @@ Versioning once the first tagged release is published.
   unreachable, and mark syntax are built correctly after boot.
 - Remove the legacy duplicate Grafana dashboard provider during upgrades so
   each dashboard UID is provisioned once and current panels are served.
+- Keep fresh Netify scrapes below the detail-job timeout by skipping fallback
+  conntrack and label work while the event stream is healthy.
+- Query reload-safe forwarded-WAN counters directly for all WAN usage cards,
+  avoiding an unnecessary interface-label join.
+- Isolate high-cardinality Netify serialization in a dedicated 10-second
+  scrape so it cannot time out the fast WAN, mwan3, inventory, and nlbwmon
+  collectors.
 - Guided configuration and one-command rendering/deployment workflow.
 - Support for one to three WANs and optional external DNS hostname lookup.
 - Eight provisioned dashboards covering overview, devices, WANs, applications,
