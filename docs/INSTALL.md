@@ -34,6 +34,11 @@ server phase installs Prometheus, node exporter, and Grafana if needed, then
 provisions rules, datasource, and dashboards. Existing managed files are copied
 to a timestamped backup directory before replacement.
 
+Router transfers use legacy SCP mode because Dropbear installations do not
+normally ship an SFTP server. During upgrades, the installer also migrates the
+legacy WAN-device include name and safely recreates its generated dynamic
+meters before reloading the validated firewall ruleset.
+
 When Grafana is not already available through APT, the installer configures the
 [official Grafana stable repository](https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/)
 and installs the OSS `grafana` package.

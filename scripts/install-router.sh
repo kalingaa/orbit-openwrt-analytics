@@ -11,7 +11,7 @@ mkdir -p "$BACKUP"
 . "$PAYLOAD/site.env"
 
 opkg update
-opkg install nlbwmon netifyd coreutils-timeout prometheus-node-exporter-lua \
+opkg install nlbwmon netifyd coreutils-install coreutils-timeout prometheus-node-exporter-lua \
   prometheus-node-exporter-lua-ethtool prometheus-node-exporter-lua-hwmon \
   prometheus-node-exporter-lua-mwan3 prometheus-node-exporter-lua-nat_traffic \
   prometheus-node-exporter-lua-netstat prometheus-node-exporter-lua-nft-counters \
@@ -19,7 +19,8 @@ opkg install nlbwmon netifyd coreutils-timeout prometheus-node-exporter-lua \
 
 for path in /etc/config/nlbwmon /etc/config/netifyd /etc/config/prometheus-node-exporter-lua \
   /etc/netifyd.conf /etc/nftables.d/90-openwrt-network-analytics-apps.nft \
-  /etc/nftables.d/91-openwrt-network-analytics-devices.nft /etc/prometheus-device-names; do
+  /etc/nftables.d/91-openwrt-network-analytics-devices.nft \
+  /etc/nftables.d/91-prometheus-wan-devices.nft /etc/prometheus-device-names; do
   [ ! -e "$path" ] || cp -p "$path" "$BACKUP/$(basename "$path")"
 done
 
@@ -61,12 +62,24 @@ install -m 0644 "$PAYLOAD/wan_app_counters.nft" /etc/nftables.d/90-openwrt-netwo
 install -m 0644 "$PAYLOAD/90-prometheus-wan-devices.nft" /etc/nftables.d/91-openwrt-network-analytics-devices.nft
 [ -f /etc/prometheus-device-names ] || install -m 0600 "$PAYLOAD/prometheus-device-names" /etc/prometheus-device-names
 
+# Migrate the pre-project filename after preserving it in the timestamped backup.
+# Keeping both files would define the same nftables meters twice and fail fw4.
+rm -f /etc/nftables.d/91-prometheus-wan-devices.nft
+
 grep -q 'prometheus-device-names-refresh' /etc/crontabs/root 2>/dev/null || \
   echo '*/5 * * * * /usr/bin/prometheus-device-names-refresh >/dev/null 2>&1' >> /etc/crontabs/root
 grep -q 'prometheus-device-inventory-checkpoint' /etc/crontabs/root 2>/dev/null || \
   echo '*/5 * * * * /usr/bin/prometheus-device-inventory-checkpoint >/dev/null 2>&1' >> /etc/crontabs/root
 
-fw4 check
+# `fw4 check` evaluates against the active table and falsely reports duplicate
+# named meters during upgrades. Compile the generated ruleset under an isolated
+# table name instead, then reload only after the complete ruleset is valid.
+fw4 print | sed 's/table inet fw4/table inet fw4_validate/g' | nft -c -f -
+nft delete chain inet fw4 prometheus_wan_devices 2>/dev/null || true
+sed -n 's/.* meter \([^ ]*\) .*/\1/p' /etc/nftables.d/91-openwrt-network-analytics-devices.nft | \
+  sort -u | while IFS= read -r meter_name; do
+    nft delete set inet fw4 "$meter_name" 2>/dev/null || true
+  done
 /etc/init.d/firewall reload
 for service in nlbwmon netifyd cron prometheus-node-exporter-lua; do
   "/etc/init.d/$service" enable

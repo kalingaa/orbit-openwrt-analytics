@@ -73,8 +73,8 @@ install_router() {
   test_rendered
   remote="/tmp/openwrt-network-analytics.$$"
   ssh -p "$ROUTER_SSH_PORT" "$ROUTER_SSH_USER@$ROUTER_ADDRESS" "mkdir -p '$remote'"
-  scp -P "$ROUTER_SSH_PORT" -r "$BUILD/." "$ROUTER_SSH_USER@$ROUTER_ADDRESS:$remote/"
-  scp -P "$ROUTER_SSH_PORT" "$ROOT/scripts/install-router.sh" "$ROUTER_SSH_USER@$ROUTER_ADDRESS:$remote/"
+  scp -O -P "$ROUTER_SSH_PORT" -r "$BUILD"/* "$ROUTER_SSH_USER@$ROUTER_ADDRESS:$remote/"
+  scp -O -P "$ROUTER_SSH_PORT" "$ROOT/scripts/install-router.sh" "$ROUTER_SSH_USER@$ROUTER_ADDRESS:$remote/"
   ssh -t -p "$ROUTER_SSH_PORT" "$ROUTER_SSH_USER@$ROUTER_ADDRESS" "sh '$remote/install-router.sh' '$remote' '$LAN_CIDR'"
 }
 

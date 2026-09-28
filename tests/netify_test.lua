@@ -37,8 +37,16 @@ local flows = {
   }
 }
 
+local duplicate = {
+  digest = "youtube-quic", local_ip = "192.0.2.10", local_mac = "02:00:00:00:00:01",
+  local_port = 50001, other_ip = "198.51.100.10", other_port = 443,
+  local_bytes = 10, other_bytes = 20, ip_protocol = 17,
+  detected_application_name = "Unknown", detected_protocol_name = "QUIC",
+  host_server_name = "rr1.example.googlevideo.com"
+}
+
 local file = assert(io.open(snapshot_path, "w"))
-file:write(json.encode({flows = {__LAN_DEVICE__ = flows}}))
+file:write(json.encode({flows = {lan_capture = flows, wan_capture = {duplicate}}}))
 file:close()
 
 local collector = dofile("monitoring/netify.lua")
@@ -64,6 +72,7 @@ assert(has_sample({application = "Unknown", protocol = "WireGuard", service = "U
 
 assert(samples.openwrt_netify_service_classified_ratio.values[1].value >
   samples.openwrt_netify_classified_ratio.values[1].value)
+assert(samples.openwrt_netify_active_flows.values[1].value == 3)
 
 os.remove(snapshot_path)
 os.remove(state_path)

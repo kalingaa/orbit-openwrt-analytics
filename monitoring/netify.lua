@@ -219,7 +219,7 @@ local function scrape()
   local hostname_metric = metric("openwrt_netify_hostname_visibility_ratio", "gauge")
 
   local snapshot = read_json(snapshot_path)
-  if not snapshot or not snapshot.flows or not snapshot.flows["__LAN_DEVICE__"] then
+  if not snapshot or type(snapshot.flows) ~= "table" then
     active_metric({}, 0)
     classified_metric({}, 0)
     service_metric({}, 0)
@@ -239,8 +239,26 @@ local function scrape()
   local classified = 0
   local service_classified = 0
   local hostname_visible = 0
+  local unique_flows = {}
 
-  for _, flow in ipairs(snapshot.flows["__LAN_DEVICE__"]) do
+  -- Netify v4 can group the same flow under bridge and physical capture
+  -- interfaces. Select the copy with the largest observed byte total.
+  for _, interface_flows in pairs(snapshot.flows) do
+    if type(interface_flows) == "table" then
+      for _, flow in ipairs(interface_flows) do
+        local digest = safe(flow.digest)
+        if digest ~= "" then
+          local previous = unique_flows[digest]
+          local total = (tonumber(flow.local_bytes) or 0) + (tonumber(flow.other_bytes) or 0)
+          local previous_total = previous and
+            ((tonumber(previous.local_bytes) or 0) + (tonumber(previous.other_bytes) or 0)) or -1
+          if total > previous_total then unique_flows[digest] = flow end
+        end
+      end
+    end
+  end
+
+  for _, flow in pairs(unique_flows) do
     local ip = safe(flow.local_ip)
     local mac = string.lower(safe(flow.local_mac))
     local digest = safe(flow.digest)

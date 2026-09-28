@@ -119,10 +119,18 @@ end
 
 local function collect_active_flows(state, now)
   local snapshot = read_json("/var/run/netifyd/sink-request.json")
-  local flows = snapshot and snapshot.flows and snapshot.flows["__LAN_DEVICE__"]
-  if type(flows) ~= "table" then return end
-  for _, flow in ipairs(flows) do
-    add_device(state, flow.local_mac, flow.local_ip, now, true)
+  if not snapshot or type(snapshot.flows) ~= "table" then return end
+  local seen = {}
+  for _, flows in pairs(snapshot.flows) do
+    if type(flows) == "table" then
+      for _, flow in ipairs(flows) do
+        local key = safe(flow.local_mac) .. "|" .. safe(flow.local_ip)
+        if not seen[key] then
+          add_device(state, flow.local_mac, flow.local_ip, now, true)
+          seen[key] = true
+        end
+      end
+    end
   end
 end
 
