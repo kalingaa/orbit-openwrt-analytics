@@ -30,6 +30,11 @@ Versioning once the first tagged release is published.
   script, ensuring the daemon actually starts with LAN capture enabled.
 - Filter application device panels by the rendered LAN CIDR so historical
   WAN-side samples are hidden immediately as well as rejected going forward.
+- Remove inline named per-device nftables meters that could collide during
+  `fw4` reloads and break post-reboot WAN forwarding; WAN device panels now use
+  LAN-filtered Netify attribution.
+- Ensure OpenWrt selects `ip-full` for mwan3 so policy routes using blackhole,
+  unreachable, and mark syntax are built correctly after boot.
 - Guided configuration and one-command rendering/deployment workflow.
 - Support for one to three WANs and optional external DNS hostname lookup.
 - Eight provisioned dashboards covering overview, devices, WANs, applications,

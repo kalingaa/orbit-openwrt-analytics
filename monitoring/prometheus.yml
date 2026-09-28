@@ -67,7 +67,6 @@ scrape_configs:
         - netify
         - device_inventory
         - wan_apps
-        - wan_devices
     static_configs:
       - targets: ["__ROUTER_ADDRESS__:__ROUTER_EXPORTER_PORT__"]
         labels:

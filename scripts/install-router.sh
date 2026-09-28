@@ -11,11 +11,15 @@ mkdir -p "$BACKUP"
 . "$PAYLOAD/site.env"
 
 opkg update
-opkg install nlbwmon netifyd socat coreutils-install coreutils-timeout prometheus-node-exporter-lua \
+opkg install nlbwmon netifyd socat ip-full coreutils-install coreutils-timeout prometheus-node-exporter-lua \
   prometheus-node-exporter-lua-ethtool prometheus-node-exporter-lua-hwmon \
   prometheus-node-exporter-lua-mwan3 prometheus-node-exporter-lua-nat_traffic \
   prometheus-node-exporter-lua-netstat prometheus-node-exporter-lua-nft-counters \
   prometheus-node-exporter-lua-openwrt prometheus-node-exporter-lua-thermal
+
+# mwan3 requires iproute2 features that BusyBox ip does not implement. Some
+# upgraded images leave the higher-priority ip-full alternative unselected.
+if [ -x /usr/libexec/ip-full ]; then ln -sf /usr/libexec/ip-full /sbin/ip; fi
 
 for path in /etc/config/nlbwmon /etc/config/netifyd /etc/config/prometheus-node-exporter-lua \
   /etc/netifyd.conf /etc/nftables.d/90-openwrt-network-analytics-apps.nft \
@@ -54,7 +58,7 @@ for device in $WAN_DEVICES; do uci add_list netifyd.@netifyd[0].external_if="$de
 uci commit netifyd
 
 install -d -m 0755 /usr/lib/lua/prometheus-collectors /etc/nftables.d
-for collector in nlbwmon netify device_inventory wan_apps wan_devices; do
+for collector in nlbwmon netify device_inventory wan_apps; do
   install -m 0644 "$PAYLOAD/$collector.lua" "/usr/lib/lua/prometheus-collectors/$collector.lua"
 done
 install -m 0644 "$PAYLOAD/netify-stream.lua" /usr/lib/lua/prometheus-netify-stream.lua
@@ -66,29 +70,25 @@ install -m 0755 "$PAYLOAD/prometheus-device-names-refresh" /usr/bin/prometheus-d
 install -m 0755 "$PAYLOAD/prometheus-device-inventory-checkpoint" /usr/bin/prometheus-device-inventory-checkpoint
 install -m 0644 "$PAYLOAD/netifyd.conf" /etc/netifyd.conf
 install -m 0644 "$PAYLOAD/wan_app_counters.nft" /etc/nftables.d/90-openwrt-network-analytics-apps.nft
-install -m 0644 "$PAYLOAD/90-prometheus-wan-devices.nft" /etc/nftables.d/91-openwrt-network-analytics-devices.nft
 [ -f /etc/prometheus-device-names ] || install -m 0600 "$PAYLOAD/prometheus-device-names" /etc/prometheus-device-names
 
 # Migrate the pre-project filename after preserving it in the timestamped backup.
 # Keeping both files would define the same nftables meters twice and fail fw4.
 rm -f /etc/nftables.d/90-prometheus-wan-apps.nft
 rm -f /etc/nftables.d/91-prometheus-wan-devices.nft
+rm -f /etc/nftables.d/91-openwrt-network-analytics-devices.nft
+rm -f /usr/lib/lua/prometheus-collectors/wan_devices.lua
 
 grep -q 'prometheus-device-names-refresh' /etc/crontabs/root 2>/dev/null || \
   echo '*/5 * * * * /usr/bin/prometheus-device-names-refresh >/dev/null 2>&1' >> /etc/crontabs/root
 grep -q 'prometheus-device-inventory-checkpoint' /etc/crontabs/root 2>/dev/null || \
   echo '*/5 * * * * /usr/bin/prometheus-device-inventory-checkpoint >/dev/null 2>&1' >> /etc/crontabs/root
 
-# `fw4 check` evaluates against the active table and falsely reports duplicate
-# named meters during upgrades. Compile the generated ruleset under an isolated
-# table name instead, then reload only after the complete ruleset is valid.
-fw4 print | sed 's/table inet fw4/table inet fw4_validate/g' | nft -c -f -
-nft delete chain inet fw4 prometheus_wan_devices 2>/dev/null || true
-sed -n 's/.* meter \([^ ]*\) .*/\1/p' /etc/nftables.d/91-openwrt-network-analytics-devices.nft | \
-  sort -u | while IFS= read -r meter_name; do
-    nft delete set inet fw4 "$meter_name" 2>/dev/null || true
-  done
+# Validate normal fw4 reload semantics. Dynamic named meters are intentionally
+# not installed because subsequent WAN ifup reloads collide with active sets.
+fw4 check
 /etc/init.d/firewall reload
+timeout 75 /etc/init.d/mwan3 restart || true
 for service in nlbwmon netifyd prometheus-netify-stream cron prometheus-node-exporter-lua; do
   "/etc/init.d/$service" enable
   "/etc/init.d/$service" restart

@@ -29,7 +29,7 @@ groups:
       - record: openwrt:wan_bytes:1h
         expr: sum by (wan, direction) (increase(openwrt_wan_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[1h]))
       - record: openwrt:wan_device_bytes:1h
-        expr: sum by (wan, direction, ip) (increase(openwrt_wan_device_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[1h]))
+        expr: sum by (wan, direction, ip) (increase(openwrt_netify_application_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[1h]))
       - record: openwrt:netify_application_bytes:1h
         expr: sum by (mac, ip, application, dpi_application, service, domain, protocol, traffic_class, detection, wan, direction) (increase(openwrt_netify_application_bytes_total{job="openwrt",dpi_application!="",router="__ROUTER_LABEL__"}[1h]))
 
@@ -47,6 +47,6 @@ groups:
       - record: openwrt:wan_bytes:1d
         expr: sum by (wan, direction) (increase(openwrt_wan_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[24h]))
       - record: openwrt:wan_device_bytes:1d
-        expr: sum by (wan, direction, ip) (increase(openwrt_wan_device_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[24h]))
+        expr: sum by (wan, direction, ip) (increase(openwrt_netify_application_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[24h]))
       - record: openwrt:netify_application_bytes:1d
         expr: sum by (mac, ip, application, dpi_application, service, domain, protocol, traffic_class, detection, wan, direction) (increase(openwrt_netify_application_bytes_total{job="openwrt",dpi_application!="",router="__ROUTER_LABEL__"}[24h]))

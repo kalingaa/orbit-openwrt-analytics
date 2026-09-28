@@ -54,6 +54,12 @@ The nftables exporter deliberately exposes two separate metric families:
 The second family must not be summed to calculate WAN totals. A packet can be
 present in both the WAN total and one port classification by design.
 
+Per-device WAN panels use LAN-filtered Netify attribution. Earlier releases
+used inline named nftables meters for these panels. Those meters were removed
+because OpenWrt evaluates custom includes against the active `fw4` table on
+every interface reload; meter-name collisions could abort a WAN `ifup` reload
+and leave routing/NAT in an incomplete boot-time state.
+
 The Netify collector preserves four different concepts instead of treating a
 transport as an application:
 
