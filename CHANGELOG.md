@@ -35,6 +35,8 @@ Versioning once the first tagged release is published.
   LAN-filtered Netify attribution.
 - Ensure OpenWrt selects `ip-full` for mwan3 so policy routes using blackhole,
   unreachable, and mark syntax are built correctly after boot.
+- Remove the legacy duplicate Grafana dashboard provider during upgrades so
+  each dashboard UID is provisioned once and current panels are served.
 - Guided configuration and one-command rendering/deployment workflow.
 - Support for one to three WANs and optional external DNS hostname lookup.
 - Eight provisioned dashboards covering overview, devices, WANs, applications,
