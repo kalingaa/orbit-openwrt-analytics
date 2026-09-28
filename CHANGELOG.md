@@ -14,6 +14,8 @@ Versioning once the first tagged release is published.
   without `install`, and reloads of existing named nftables device meters.
 - Discover and deduplicate Netify flows across bridge and physical capture
   interfaces instead of assuming one snapshot key.
+- Keep existing application dashboards useful by exposing the best resolved
+  application/service name while retaining strict DPI results separately.
 - Guided configuration and one-command rendering/deployment workflow.
 - Support for one to three WANs and optional external DNS hostname lookup.
 - Eight provisioned dashboards covering overview, devices, WANs, applications,

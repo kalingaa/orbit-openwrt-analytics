@@ -49,6 +49,16 @@ local file = assert(io.open(snapshot_path, "w"))
 file:write(json.encode({flows = {lan_capture = flows, wan_capture = {duplicate}}}))
 file:close()
 
+local old_state = assert(io.open(state_path, "w"))
+old_state:write(json.encode({version = 2, seen = {}, totals = {legacy = {
+  labels = {application = "spotify", protocol = "QUIC", service = "spotify",
+    domain = "spotify.com", traffic_class = "application", detection = "dpi",
+    intelligence = "none", wan = "unknown", ip = "192.0.2.12",
+    mac = "02:00:00:00:00:03", device_name = "test-device"},
+  upload = 10, download = 20, flows = 1
+}}}))
+old_state:close()
+
 local collector = dofile("monitoring/netify.lua")
 collector.scrape()
 
@@ -63,12 +73,14 @@ local function has_sample(expected)
   return false
 end
 
-assert(has_sample({application = "Unknown", protocol = "QUIC", service = "YouTube",
+assert(has_sample({application = "YouTube", dpi_application = "Unknown", protocol = "QUIC", service = "YouTube",
   domain = "googlevideo.com", traffic_class = "unresolved_quic"}))
-assert(has_sample({application = "Unknown", protocol = "QUIC", service = "Google DNS",
+assert(has_sample({application = "Google DNS", dpi_application = "Unknown", protocol = "QUIC", service = "Google DNS",
   domain = "dns.google", traffic_class = "encrypted_dns"}))
-assert(has_sample({application = "Unknown", protocol = "WireGuard", service = "Unknown",
+assert(has_sample({application = "Unknown", dpi_application = "Unknown", protocol = "WireGuard", service = "Unknown",
   traffic_class = "vpn"}))
+assert(has_sample({application = "spotify", dpi_application = "spotify", service = "spotify",
+  detection = "dpi"}))
 
 assert(samples.openwrt_netify_service_classified_ratio.values[1].value >
   samples.openwrt_netify_classified_ratio.values[1].value)

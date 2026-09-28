@@ -175,15 +175,16 @@ end
 
 local function classify(flow)
   local raw_app = nonempty(flow.detected_application_name)
-  local application = raw_app and raw_app:gsub("^netify%.", "") or "Unknown"
+  local dpi_application = raw_app and raw_app:gsub("^netify%.", "") or "Unknown"
   local protocol = nonempty(flow.detected_protocol_name) or "Unknown"
   local hostname = detected_hostname(flow)
   local domain = base_domain(hostname)
-  local service = raw_app and application or service_from_domain(domain) or domain
+  local service = raw_app and dpi_application or service_from_domain(domain) or domain
   if not service or service == "Unknown" then service = "Unknown" end
+  local application = service ~= "Unknown" and service or dpi_application
 
   local intel = intelligence(flow)
-  local evidence = table.concat({application, protocol, service, domain, intel}, " "):lower()
+  local evidence = table.concat({dpi_application, protocol, service, domain, intel}, " "):lower()
   local protocol_key = protocol:lower()
   local traffic_class = "application"
   local detection = raw_app and "dpi" or (domain ~= "Unknown" and "hostname" or "protocol")
@@ -201,13 +202,39 @@ local function classify(flow)
     traffic_class = "vpn"
   elseif contains_any(evidence, {"proxy", "socks", "privacy-relay", "private relay"}) then
     traffic_class = "proxy"
-  elseif application == "Unknown" then
+  elseif dpi_application == "Unknown" then
     traffic_class = protocol:lower():find("quic", 1, true) and "unresolved_quic" or "unclassified"
   end
 
   if intel ~= "" then detection = "intelligence" end
-  return application, protocol, service, domain, traffic_class, detection,
+  return application, dpi_application, protocol, service, domain, traffic_class, detection,
     (intel ~= "" and intel or "none")
+end
+
+local function totals_key(labels)
+  return table.concat({labels.application, labels.dpi_application, labels.protocol,
+    labels.service, labels.domain, labels.traffic_class, labels.detection,
+    labels.intelligence, labels.wan, labels.ip, labels.mac, labels.device_name}, "\t")
+end
+
+local function migrate_state(state)
+  if state.version == 3 then return state end
+  if state.version ~= 2 then return {version = 3, seen = {}, totals = {}} end
+
+  local migrated = {version = 3, seen = state.seen or {}, totals = {}}
+  for _, total in pairs(state.totals or {}) do
+    local labels = total.labels or {}
+    labels.dpi_application = labels.application or "Unknown"
+    if labels.service and labels.service ~= "Unknown" then labels.application = labels.service end
+    local key = totals_key(labels)
+    local existing = migrated.totals[key] or
+      {labels = labels, upload = 0, download = 0, flows = 0}
+    existing.upload = (existing.upload or 0) + (total.upload or 0)
+    existing.download = (existing.download or 0) + (total.download or 0)
+    existing.flows = (existing.flows or 0) + (total.flows or 0)
+    migrated.totals[key] = existing
+  end
+  return migrated
 end
 
 local function scrape()
@@ -227,8 +254,7 @@ local function scrape()
     return
   end
 
-  local state = read_json(state_path) or {version = 2, seen = {}, totals = {}}
-  if state.version ~= 2 then state = {version = 2, seen = {}, totals = {}} end
+  local state = migrate_state(read_json(state_path) or {version = 3, seen = {}, totals = {}})
   state.seen = state.seen or {}
   state.totals = state.totals or {}
 
@@ -265,7 +291,7 @@ local function scrape()
     local proto_number = tonumber(flow.ip_protocol) or 0
     if ip ~= "" and mac ~= "" and digest ~= "" and (proto_number == 6 or proto_number == 17) then
       active = active + 1
-      local app, protocol, service, domain, traffic_class, detection, intel = classify(flow)
+      local app, dpi_app, protocol, service, domain, traffic_class, detection, intel = classify(flow)
       if safe(flow.detected_application_name) ~= "" and safe(flow.detected_application_name) ~= "Unknown" then
         classified = classified + 1
       end
@@ -277,6 +303,7 @@ local function scrape()
       local name = names[string.upper(mac)] or "unknown"
       local labels = {
         application = app,
+        dpi_application = dpi_app,
         protocol = protocol,
         service = service,
         domain = domain,
@@ -288,8 +315,7 @@ local function scrape()
         mac = mac,
         device_name = name
       }
-      local label_key = table.concat({app, protocol, service, domain, traffic_class, detection,
-        intel, wan, ip, mac, name}, "\t")
+      local label_key = totals_key(labels)
       local previous = state.seen[digest]
       local up = tonumber(flow.local_bytes) or 0
       local down = tonumber(flow.other_bytes) or 0
@@ -319,13 +345,15 @@ local function scrape()
   for _, total in pairs(state.totals) do
     local base = total.labels
     local upload_labels = {
-      application = base.application, protocol = base.protocol, wan = base.wan,
+      application = base.application, dpi_application = base.dpi_application,
+      protocol = base.protocol, wan = base.wan,
       service = base.service, domain = base.domain, traffic_class = base.traffic_class,
       detection = base.detection, intelligence = base.intelligence,
       ip = base.ip, mac = base.mac, device_name = base.device_name, direction = "upload"
     }
     local download_labels = {
-      application = base.application, protocol = base.protocol, wan = base.wan,
+      application = base.application, dpi_application = base.dpi_application,
+      protocol = base.protocol, wan = base.wan,
       service = base.service, domain = base.domain, traffic_class = base.traffic_class,
       detection = base.detection, intelligence = base.intelligence,
       ip = base.ip, mac = base.mac, device_name = base.device_name, direction = "download"

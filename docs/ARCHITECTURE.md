@@ -22,7 +22,10 @@ than implying that they must match exactly.
 The Netify collector preserves four different concepts instead of treating a
 transport as an application:
 
-- `application`: a Netify DPI application, or `Unknown`.
+- `application`: the best resolved display name, preferring Netify DPI and then
+  a hostname-derived service/base domain. This keeps existing application
+  dashboards useful without ever substituting a transport such as QUIC.
+- `dpi_application`: the strict Netify DPI application, or `Unknown`.
 - `service` and `domain`: a bounded service name or base domain derived from
   visible DNS hints, HTTP host metadata, TLS SNI, or QUIC metadata.
 - `protocol`: the underlying protocol, such as HTTPS, QUIC, or WireGuard.

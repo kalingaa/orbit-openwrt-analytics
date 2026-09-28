@@ -42,7 +42,7 @@
       "gridPos": {"h": 11, "w": 12, "x": 0, "y": 5},
       "id": 4,
       "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
-      "targets": [{"editorMode": "code", "expr": "topk(30, sum by (service) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",service=~\"$service\",traffic_class=~\"$traffic_class\"}[$__range])))", "instant": true, "legendFormat": "{{service}}", "range": false, "refId": "A"}],
+      "targets": [{"editorMode": "code", "expr": "topk(30, sum by (service) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",service=~\"$service\",traffic_class=~\"$traffic_class\"}[$__range])))", "instant": true, "legendFormat": "{{service}}", "range": false, "refId": "A"}],
       "title": "Services by Usage — QUIC Is Kept as a Protocol", "type": "bargauge"
     },
     {
@@ -51,7 +51,7 @@
       "gridPos": {"h": 11, "w": 12, "x": 12, "y": 5},
       "id": 5,
       "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
-      "targets": [{"editorMode": "code", "expr": "sort_desc(sum by (traffic_class) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",service=~\"$service\",traffic_class=~\"$traffic_class\"}[$__range])))", "instant": true, "legendFormat": "{{traffic_class}}", "range": false, "refId": "A"}],
+      "targets": [{"editorMode": "code", "expr": "sort_desc(sum by (traffic_class) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",service=~\"$service\",traffic_class=~\"$traffic_class\"}[$__range])))", "instant": true, "legendFormat": "{{traffic_class}}", "range": false, "refId": "A"}],
       "title": "Traffic Classification", "type": "bargauge"
     },
     {
@@ -60,7 +60,7 @@
       "gridPos": {"h": 12, "w": 12, "x": 0, "y": 16},
       "id": 6,
       "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
-      "targets": [{"editorMode": "code", "expr": "topk(30, sum by (traffic_class, service, device_name, ip, mac) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",traffic_class=~\"vpn|encrypted_dns|tor|proxy\"}[$__range])))", "instant": true, "legendFormat": "{{traffic_class}} / {{service}} / {{device_name}} / {{ip}}", "range": false, "refId": "A"}],
+      "targets": [{"editorMode": "code", "expr": "topk(30, sum by (traffic_class, service, device_name, ip, mac) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",traffic_class=~\"vpn|encrypted_dns|tor|proxy\"}[$__range])))", "instant": true, "legendFormat": "{{traffic_class}} / {{service}} / {{device_name}} / {{ip}}", "range": false, "refId": "A"}],
       "title": "VPN, Encrypted DNS, Tor and Proxy Usage by Device", "type": "bargauge"
     },
     {
@@ -69,7 +69,7 @@
       "gridPos": {"h": 12, "w": 12, "x": 12, "y": 16},
       "id": 7,
       "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
-      "targets": [{"editorMode": "code", "expr": "topk(30, sum by (domain, device_name, ip) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",traffic_class=\"unresolved_quic\"}[$__range])))", "instant": true, "legendFormat": "{{domain}} / {{device_name}} / {{ip}}", "range": false, "refId": "A"}],
+      "targets": [{"editorMode": "code", "expr": "topk(30, sum by (domain, device_name, ip) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",traffic_class=\"unresolved_quic\"}[$__range])))", "instant": true, "legendFormat": "{{domain}} / {{device_name}} / {{ip}}", "range": false, "refId": "A"}],
       "title": "Unresolved QUIC — Visible Domains and Devices", "type": "bargauge"
     },
     {
@@ -78,7 +78,7 @@
       "gridPos": {"h": 10, "w": 12, "x": 0, "y": 28},
       "id": 8,
       "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
-      "targets": [{"editorMode": "code", "expr": "topk(25, sum by (application) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",application!=\"Unknown\",traffic_class=~\"$traffic_class\"}[$__range])))", "instant": true, "legendFormat": "{{application}}", "range": false, "refId": "A"}],
+      "targets": [{"editorMode": "code", "expr": "topk(25, sum by (dpi_application) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",dpi_application!=\"Unknown\",traffic_class=~\"$traffic_class\"}[$__range])))", "instant": true, "legendFormat": "{{dpi_application}}", "range": false, "refId": "A"}],
       "title": "DPI-Identified Applications", "type": "bargauge"
     },
     {
@@ -87,7 +87,7 @@
       "gridPos": {"h": 10, "w": 12, "x": 12, "y": 28},
       "id": 9,
       "options": {"displayMode": "gradient", "minVizHeight": 12, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
-      "targets": [{"editorMode": "code", "expr": "topk(25, sum by (protocol) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",service=~\"$service\",traffic_class=~\"$traffic_class\"}[$__range])))", "instant": true, "legendFormat": "{{protocol}}", "range": false, "refId": "A"}],
+      "targets": [{"editorMode": "code", "expr": "topk(25, sum by (protocol) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",service=~\"$service\",traffic_class=~\"$traffic_class\"}[$__range])))", "instant": true, "legendFormat": "{{protocol}}", "range": false, "refId": "A"}],
       "title": "Underlying Protocols", "type": "bargauge"
     }
   ],
@@ -95,8 +95,8 @@
   "schemaVersion": 41,
   "tags": ["openwrt", "netify", "services", "security"],
   "templating": {"list": [
-    {"allValue": ".*", "current": {"selected": true, "text": "All", "value": "$__all"}, "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}, "definition": "label_values(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}, service)", "includeAll": true, "label": "Service", "multi": true, "name": "service", "options": [], "query": {"query": "label_values(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}, service)", "refId": "StandardVariableQuery"}, "refresh": 1, "regex": "", "sort": 1, "type": "query"},
-    {"allValue": ".*", "current": {"selected": true, "text": "All", "value": "$__all"}, "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}, "definition": "label_values(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}, traffic_class)", "includeAll": true, "label": "Traffic Class", "multi": true, "name": "traffic_class", "options": [], "query": {"query": "label_values(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}, traffic_class)", "refId": "StandardVariableQuery"}, "refresh": 1, "regex": "", "sort": 1, "type": "query"}
+    {"allValue": ".*", "current": {"selected": true, "text": "All", "value": "$__all"}, "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}, "definition": "label_values(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\"}, service)", "includeAll": true, "label": "Service", "multi": true, "name": "service", "options": [], "query": {"query": "label_values(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\"}, service)", "refId": "StandardVariableQuery"}, "refresh": 1, "regex": "", "sort": 1, "type": "query"},
+    {"allValue": ".*", "current": {"selected": true, "text": "All", "value": "$__all"}, "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"}, "definition": "label_values(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\"}, traffic_class)", "includeAll": true, "label": "Traffic Class", "multi": true, "name": "traffic_class", "options": [], "query": {"query": "label_values(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\"}, traffic_class)", "refId": "StandardVariableQuery"}, "refresh": 1, "regex": "", "sort": 1, "type": "query"}
   ]},
   "time": {"from": "now-6h", "to": "now"},
   "timepicker": {},

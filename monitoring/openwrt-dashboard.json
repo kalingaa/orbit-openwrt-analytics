@@ -134,8 +134,8 @@
       "gridPos": {"h": 9, "w": 12, "x": 12, "y": 19},
       "id": 8,
       "options": {"displayMode": "gradient", "minVizHeight": 10, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
-      "targets": [{"editorMode": "code", "expr": "topk(15, sum by (application) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range])))", "instant": true, "legendFormat": "{{application}}", "range": false, "refId": "A"}],
-      "title": "Top Applications — DPI Classified",
+      "targets": [{"editorMode": "code", "expr": "topk(15, sum by (application) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\"}[$__range])))", "instant": true, "legendFormat": "{{application}}", "range": false, "refId": "A"}],
+      "title": "Top Applications & Services — DPI + Hostname",
       "type": "bargauge"
     },
     {
@@ -170,8 +170,8 @@
       "gridPos": {"h": 9, "w": 12, "x": 12, "y": 33},
       "id": 15,
       "options": {"displayMode": "gradient", "minVizHeight": 10, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
-      "targets": [{"editorMode": "code", "expr": "sort_desc(topk(15, sum by (application) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",ip=~\"$client_ip\"}[$__range]))))", "instant": true, "legendFormat": "{{application}}", "range": false, "refId": "A"}],
-      "title": "Selected Device — Applications (DPI)",
+      "targets": [{"editorMode": "code", "expr": "sort_desc(topk(15, sum by (application) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",ip=~\"$client_ip\"}[$__range]))))", "instant": true, "legendFormat": "{{application}}", "range": false, "refId": "A"}],
+      "title": "Selected Device — Applications & Services",
       "type": "bargauge"
     },
     {
