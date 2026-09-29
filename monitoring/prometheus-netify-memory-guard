@@ -1,0 +1,15 @@
+#!/bin/sh
+
+# netifyd is passive DPI: restarting it does not interrupt packet forwarding.
+# This guard protects embedded routers from an upstream daemon regression while
+# the compact stream consumer normally keeps memory well below this threshold.
+threshold_kb=${NETIFY_MEMORY_LIMIT_KB:-524288}
+pid=$(pidof netifyd 2>/dev/null | awk '{print $1}')
+[ -n "$pid" ] || exit 0
+rss_kb=$(awk '/^VmRSS:/{print $2}' "/proc/$pid/status" 2>/dev/null)
+[ -n "$rss_kb" ] || exit 0
+
+if [ "$rss_kb" -gt "$threshold_kb" ]; then
+  logger -t openwrt-analytics "netifyd RSS ${rss_kb}KB exceeded ${threshold_kb}KB; restarting passive DPI service"
+  /etc/init.d/netifyd restart
+fi

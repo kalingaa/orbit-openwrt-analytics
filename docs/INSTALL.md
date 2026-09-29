@@ -37,6 +37,8 @@ to a timestamped backup directory before replacement.
 The router dependencies include `socat`. The
 `prometheus-netify-stream` procd service uses it to consume Netify's local Unix
 socket continuously; no Netify metadata is sent to an external cloud service.
+The stream writes compact counter state every five seconds and the installer
+adds a five-minute passive-DPI memory guard for embedded-router safety.
 
 Router transfers use legacy SCP mode because Dropbear installations do not
 normally ship an SFTP server. During upgrades, the installer also migrates the

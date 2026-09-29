@@ -68,6 +68,7 @@ install -m 0755 "$PAYLOAD/prometheus-netify-stream.init" /etc/init.d/prometheus-
 install -m 0755 "$PAYLOAD/device-name" /usr/bin/device-name
 install -m 0755 "$PAYLOAD/prometheus-device-names-refresh" /usr/bin/prometheus-device-names-refresh
 install -m 0755 "$PAYLOAD/prometheus-device-inventory-checkpoint" /usr/bin/prometheus-device-inventory-checkpoint
+install -m 0755 "$PAYLOAD/prometheus-netify-memory-guard" /usr/bin/prometheus-netify-memory-guard
 install -m 0644 "$PAYLOAD/99-openwrt-analytics.conf" /etc/sysctl.d/99-openwrt-analytics.conf
 install -m 0644 "$PAYLOAD/netifyd.conf" /etc/netifyd.conf
 install -m 0644 "$PAYLOAD/wan_app_counters.nft" /etc/nftables.d/90-openwrt-network-analytics-apps.nft
@@ -84,6 +85,8 @@ grep -q 'prometheus-device-names-refresh' /etc/crontabs/root 2>/dev/null || \
   echo '*/5 * * * * /usr/bin/prometheus-device-names-refresh >/dev/null 2>&1' >> /etc/crontabs/root
 grep -q 'prometheus-device-inventory-checkpoint' /etc/crontabs/root 2>/dev/null || \
   echo '*/5 * * * * /usr/bin/prometheus-device-inventory-checkpoint >/dev/null 2>&1' >> /etc/crontabs/root
+grep -q 'prometheus-netify-memory-guard' /etc/crontabs/root 2>/dev/null || \
+  echo '*/5 * * * * /usr/bin/prometheus-netify-memory-guard >/dev/null 2>&1' >> /etc/crontabs/root
 
 # Validate normal fw4 reload semantics. Dynamic named meters are intentionally
 # not installed because subsequent WAN ifup reloads collide with active sets.

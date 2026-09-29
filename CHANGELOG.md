@@ -49,6 +49,9 @@ Versioning once the first tagged release is published.
   router memory exhaustion.
 - Ensure the Netify stream wrapper terminates its Lua and socket children so
   service restarts cannot leave high-memory orphan collectors behind.
+- Persist only compact Netify counters every five seconds, keep flow metadata
+  in memory for at most five minutes, and add a passive-DPI memory guard to
+  prevent a slow socket consumer or upstream regression from exhausting RAM.
 - Raise the OpenWrt kernel receive-buffer ceiling for reliable nlbwmon
   conntrack dumps.
 - Correct rendered LAN-regex escaping, validate it during tests, and use safer

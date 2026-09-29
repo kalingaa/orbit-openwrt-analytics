@@ -48,7 +48,8 @@ local conntrack_wans = collector.load_wan_map()
 local dirty = 0
 local last_refresh = os.time()
 local last_snapshot_refresh = 0
-local metadata_ttl = 900
+local last_flush = os.time()
+local metadata_ttl = 300
 
 local function copy_metadata(flow, interface)
   return {
@@ -191,8 +192,21 @@ end
 
 local function flush()
   state.updated_at = os.time()
-  collector.write_json(state_path, state)
+  -- The exporter only consumes cumulative totals and health counters. Flow
+  -- metadata is runtime-only and is rebuilt from Netify's active snapshot on
+  -- restart. Persisting it made each flush progressively slower, which caused
+  -- Netify's socket queue and daemon memory to grow without bound.
+  collector.write_json(state_path, {
+    version = 1,
+    updated_at = state.updated_at,
+    events_total = state.events_total,
+    duplicate_events_total = state.duplicate_events_total,
+    unmatched_events_total = state.unmatched_events_total,
+    non_lan_events_total = state.non_lan_events_total,
+    totals = state.totals
+  })
   dirty = 0
+  last_flush = state.updated_at
 end
 
 for line in io.lines() do
@@ -248,7 +262,7 @@ for line in io.lines() do
     end
     dirty = dirty + 1
 
-    if dirty >= 25 then
+    if dirty >= 500 or now - last_flush >= 5 then
       for digest, metadata in pairs(state.metadata) do
         if now - (metadata.touched or 0) > metadata_ttl then
           state.metadata[digest] = nil

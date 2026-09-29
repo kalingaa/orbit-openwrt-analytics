@@ -25,9 +25,17 @@ Application byte accounting consumes Netify's Unix socket continuously. A
 `flow_purge` records supply directional byte intervals. The collector joins
 those records by flow digest, deduplicates repeated events, backfills metadata
 for already-active flows from Netify's local snapshot, and stores monotonic
-Prometheus counters in tmpfs. If the event consumer is unavailable, the Lua
+Prometheus counters in tmpfs. Runtime flow metadata expires after five minutes
+and is never written to the exported state file; only compact cumulative
+counters are flushed every five seconds. This keeps the Unix socket consumer
+ahead of Netify's event producer and prevents an in-memory socket backlog. If
+the event consumer is unavailable, the Lua
 exporter temporarily falls back to the older active-flow snapshot method and
 sets `openwrt_netify_stream_up` to zero.
+
+A five-minute memory guard restarts only the passive `netifyd` DPI service if
+its resident memory exceeds 512 MiB. Packet forwarding, firewall state, WANs,
+DNS, DHCP, and VPN services are unaffected by this defensive restart.
 
 Per-device application accounting accepts `local_ip` values only when they are
 inside the configured `LAN_CIDR`. This boundary check is intentional: Netify
