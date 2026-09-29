@@ -12,7 +12,7 @@
     {
       "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
       "fieldConfig": {"defaults": {"mappings": [{"options": {"0": {"color": "red", "text": "DEGRADED"}, "1": {"color": "green", "text": "HEALTHY"}}, "type": "value"}], "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}, "overrides": []},
-      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 0},
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 0},
       "id": 1,
       "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
       "targets": [{"editorMode": "code", "expr": "min(up{instance=\"__ROUTER_ADDRESS__:__ROUTER_EXPORTER_PORT__\"})", "instant": true, "legendFormat": "Collectors", "range": false, "refId": "A"}],
@@ -21,39 +21,8 @@
     },
     {
       "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
-      "description": "Confirms that the persistent Netify socket consumer is receiving flow metadata, periodic byte intervals, and final-flow records.",
-      "fieldConfig": {"defaults": {"mappings": [{"options": {"0": {"color": "red", "text": "DOWN"}, "1": {"color": "green", "text": "STREAMING"}}, "type": "value"}], "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 1}]}}, "overrides": []},
-      "gridPos": {"h": 4, "w": 4, "x": 4, "y": 0},
-      "id": 16,
-      "options": {"colorMode": "background", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
-      "targets": [{"editorMode": "code", "expr": "min(openwrt_netify_stream_up{job=\"openwrt\",router=\"__ROUTER_LABEL__\"})", "instant": true, "legendFormat": "Netify stream", "range": false, "refId": "A"}],
-      "title": "Netify Event Stream",
-      "type": "stat"
-    },
-    {
-      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
-      "fieldConfig": {"defaults": {"max": 1, "min": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 0.6}, {"color": "green", "value": 0.8}]}, "unit": "percentunit"}, "overrides": []},
-      "gridPos": {"h": 4, "w": 4, "x": 8, "y": 0},
-      "id": 2,
-      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
-      "targets": [{"editorMode": "code", "expr": "avg(openwrt_netify_classified_ratio{job=\"openwrt\",router=\"__ROUTER_LABEL__\"})", "instant": true, "legendFormat": "Classified", "range": false, "refId": "A"}],
-      "title": "Current DPI Classification",
-      "type": "stat"
-    },
-    {
-      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
-      "fieldConfig": {"defaults": {"max": 1, "min": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 0.05}, {"color": "red", "value": 0.2}]}, "unit": "percentunit"}, "overrides": []},
-      "gridPos": {"h": 4, "w": 4, "x": 12, "y": 0},
-      "id": 3,
-      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
-      "targets": [{"editorMode": "code", "expr": "sum(increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",wan=\"unknown\"}[$__range])) / clamp_min(sum(increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\"}[$__range])), 1)", "instant": true, "legendFormat": "Unknown WAN", "range": false, "refId": "A"}],
-      "title": "Unknown-WAN DPI Share",
-      "type": "stat"
-    },
-    {
-      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
       "fieldConfig": {"defaults": {"max": 1, "min": 0, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 0.1}, {"color": "red", "value": 0.3}]}, "unit": "percentunit"}, "overrides": []},
-      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 0},
+      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 0},
       "id": 4,
       "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
       "targets": [{"editorMode": "code", "expr": "count(count by (mac) (openwrt_device_inventory_info{device_name=\"unknown\"})) / clamp_min(count(count by (mac) (openwrt_device_inventory_info)), 1)", "instant": true, "legendFormat": "Unnamed", "range": false, "refId": "A"}],
@@ -63,7 +32,7 @@
     {
       "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
       "fieldConfig": {"defaults": {"thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "yellow", "value": 15}, {"color": "red", "value": 60}]}, "unit": "s"}, "overrides": []},
-      "gridPos": {"h": 4, "w": 4, "x": 20, "y": 0},
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 0},
       "id": 5,
       "options": {"colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto", "wideLayout": true},
       "targets": [{"editorMode": "code", "expr": "time() - openwrt_device_inventory_updated_seconds{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}", "instant": true, "legendFormat": "Age", "range": false, "refId": "A"}],
@@ -72,7 +41,7 @@
     },
     {
       "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
-      "description": "WAN interface RX is the reference for downloads. nlbwmon, Netify DPI and the passive nftables All counters measure different scopes, so differences indicate coverage rather than necessarily an error.",
+      "description": "WAN interface RX is the reference for downloads. nlbwmon accounts LAN devices while the passive nftables counters cover forwarded traffic per WAN, so small scope differences are expected.",
       "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
       "gridPos": {"h": 7, "w": 12, "x": 0, "y": 4},
       "id": 6,
@@ -80,8 +49,7 @@
       "targets": [
         {"editorMode": "code", "expr": "sum(increase(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"})", "instant": true, "legendFormat": "WAN interfaces", "range": false, "refId": "A"},
         {"editorMode": "code", "expr": "sum(increase(nlbwmon_rx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]))", "instant": true, "legendFormat": "nlbwmon", "range": false, "refId": "B"},
-        {"editorMode": "code", "expr": "sum(increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",direction=\"download\",wan!=\"unknown\"}[$__range]))", "instant": true, "legendFormat": "Netify DPI — known WAN", "range": false, "refId": "C"},
-        {"editorMode": "code", "expr": "sum(increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",direction=\"download\"}[$__range]))", "instant": true, "legendFormat": "nftables WAN", "range": false, "refId": "D"}
+        {"editorMode": "code", "expr": "sum(increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",direction=\"download\"}[$__range]))", "instant": true, "legendFormat": "nftables WAN", "range": false, "refId": "C"}
       ],
       "title": "Download Reconciliation — Selected Time Range",
       "type": "stat"
@@ -96,8 +64,7 @@
       "targets": [
         {"editorMode": "code", "expr": "sum(increase(node_network_transmit_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"})", "instant": true, "legendFormat": "WAN interfaces", "range": false, "refId": "A"},
         {"editorMode": "code", "expr": "sum(increase(nlbwmon_tx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]))", "instant": true, "legendFormat": "nlbwmon", "range": false, "refId": "B"},
-        {"editorMode": "code", "expr": "sum(increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",direction=\"upload\",wan!=\"unknown\"}[$__range]))", "instant": true, "legendFormat": "Netify DPI — known WAN", "range": false, "refId": "C"},
-        {"editorMode": "code", "expr": "sum(increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",direction=\"upload\"}[$__range]))", "instant": true, "legendFormat": "nftables WAN", "range": false, "refId": "D"}
+        {"editorMode": "code", "expr": "sum(increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",direction=\"upload\"}[$__range]))", "instant": true, "legendFormat": "nftables WAN", "range": false, "refId": "C"}
       ],
       "title": "Upload Reconciliation — Selected Time Range",
       "type": "stat"
@@ -110,8 +77,7 @@
       "options": {"displayMode": "gradient", "minVizHeight": 22, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
       "targets": [
         {"editorMode": "code", "expr": "100 * sum(increase(nlbwmon_rx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range])) / clamp_min(sum(increase(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}), 1)", "instant": true, "legendFormat": "nlbwmon / WAN interface", "range": false, "refId": "A"},
-        {"editorMode": "code", "expr": "100 * sum(increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",direction=\"download\",wan!=\"unknown\"}[$__range])) / clamp_min(sum(increase(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}), 1)", "instant": true, "legendFormat": "Netify known-WAN / interface", "range": false, "refId": "B"},
-        {"editorMode": "code", "expr": "100 * sum(increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",direction=\"download\"}[$__range])) / clamp_min(sum(increase(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}), 1)", "instant": true, "legendFormat": "nftables / WAN interface", "range": false, "refId": "C"}
+        {"editorMode": "code", "expr": "100 * sum(increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",direction=\"download\"}[$__range])) / clamp_min(sum(increase(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}), 1)", "instant": true, "legendFormat": "nftables / WAN interface", "range": false, "refId": "B"}
       ],
       "title": "Download Coverage Against WAN Interfaces",
       "type": "bargauge"
@@ -125,8 +91,7 @@
       "targets": [
         {"editorMode": "code", "expr": "sum(rate(node_network_receive_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[5m]) * 8 * on(device) group_left(wan) openwrt_wan_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"})", "legendFormat": "WAN interfaces", "range": true, "refId": "A"},
         {"editorMode": "code", "expr": "sum(rate(nlbwmon_rx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[5m])) * 8", "legendFormat": "nlbwmon", "range": true, "refId": "B"},
-        {"editorMode": "code", "expr": "sum(rate(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",direction=\"download\",wan!=\"unknown\"}[5m])) * 8", "legendFormat": "Netify DPI — known WAN", "range": true, "refId": "C"},
-        {"editorMode": "code", "expr": "sum(rate(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",direction=\"download\"}[5m])) * 8", "legendFormat": "nftables WAN", "range": true, "refId": "D"}
+        {"editorMode": "code", "expr": "sum(rate(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",direction=\"download\"}[5m])) * 8", "legendFormat": "nftables WAN", "range": true, "refId": "C"}
       ],
       "title": "Collector Download Rate Comparison",
       "type": "timeseries"
@@ -149,8 +114,7 @@
       "options": {"displayMode": "gradient", "minVizHeight": 18, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
       "targets": [
         {"editorMode": "code", "expr": "sum(resets(nlbwmon_rx_bytes{job=\"openwrt\"}[$__range])) + sum(resets(nlbwmon_tx_bytes{job=\"openwrt\"}[$__range]))", "instant": true, "legendFormat": "nlbwmon", "range": false, "refId": "A"},
-        {"editorMode": "code", "expr": "sum(resets(openwrt_netify_application_bytes_total{job=\"openwrt\"}[$__range]))", "instant": true, "legendFormat": "Netify", "range": false, "refId": "B"},
-        {"editorMode": "code", "expr": "sum(resets(openwrt_wan_bytes_total{job=\"openwrt\"}[$__range]))", "instant": true, "legendFormat": "WAN nftables", "range": false, "refId": "C"}
+        {"editorMode": "code", "expr": "sum(resets(openwrt_wan_bytes_total{job=\"openwrt\"}[$__range]))", "instant": true, "legendFormat": "WAN nftables", "range": false, "refId": "B"}
       ],
       "title": "Counter Resets in Range",
       "type": "bargauge"
@@ -161,18 +125,8 @@
       "gridPos": {"h": 8, "w": 6, "x": 18, "y": 20},
       "id": 12,
       "options": {"displayMode": "gradient", "minVizHeight": 18, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
-      "targets": [{"editorMode": "code", "expr": "sort_desc(count by (__name__) ({job=\"openwrt\",__name__=~\"nlbwmon_.*|openwrt_netify_.*|openwrt_wan_.*|openwrt_device_.*\"}))", "instant": true, "legendFormat": "{{__name__}}", "range": false, "refId": "A"}],
+      "targets": [{"editorMode": "code", "expr": "sort_desc(count by (__name__) ({job=\"openwrt\",__name__=~\"nlbwmon_.*|openwrt_wan_.*|openwrt_device_.*\"}))", "instant": true, "legendFormat": "{{__name__}}", "range": false, "refId": "A"}],
       "title": "Series Cardinality by Metric",
-      "type": "bargauge"
-    },
-    {
-      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
-      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
-      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 28},
-      "id": 13,
-      "options": {"displayMode": "gradient", "minVizHeight": 16, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
-      "targets": [{"editorMode": "code", "expr": "sort_desc(topk(20, sum by (device_name, ip, mac) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",wan=\"unknown\"}[$__range]))))", "instant": true, "legendFormat": "{{device_name}} | {{ip}} | {{mac}}", "range": false, "refId": "A"}],
-      "title": "Largest Sources of Unknown-WAN DPI Traffic",
       "type": "bargauge"
     }
   ],

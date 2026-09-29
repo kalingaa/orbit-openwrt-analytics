@@ -1,0 +1,20 @@
+# Passive forwarded-traffic counters for authoritative per-WAN totals. These
+# rules never accept, drop, mark, redirect, or otherwise alter traffic.
+
+counter prom_wan___WAN1_NAME___download_All { comment "__WAN1_NAME__ download total"; }
+counter prom_wan___WAN1_NAME___upload_All { comment "__WAN1_NAME__ upload total"; }
+counter prom_wan___WAN2_NAME___download_All { comment "__WAN2_NAME__ download total"; }
+counter prom_wan___WAN2_NAME___upload_All { comment "__WAN2_NAME__ upload total"; }
+counter prom_wan___WAN3_NAME___download_All { comment "__WAN3_NAME__ download total"; }
+counter prom_wan___WAN3_NAME___upload_All { comment "__WAN3_NAME__ upload total"; }
+
+chain prometheus_wan_totals {
+  type filter hook forward priority -1; policy accept;
+
+  iifname "__WAN1_DEVICE__" counter name prom_wan___WAN1_NAME___download_All
+  oifname "__WAN1_DEVICE__" counter name prom_wan___WAN1_NAME___upload_All
+  iifname "__WAN2_DEVICE__" counter name prom_wan___WAN2_NAME___download_All
+  oifname "__WAN2_DEVICE__" counter name prom_wan___WAN2_NAME___upload_All
+  iifname "__WAN3_DEVICE__" counter name prom_wan___WAN3_NAME___download_All
+  oifname "__WAN3_DEVICE__" counter name prom_wan___WAN3_NAME___upload_All
+}

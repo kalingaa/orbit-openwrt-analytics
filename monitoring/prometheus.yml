@@ -65,21 +65,7 @@ scrape_configs:
         - nlbwmon
         - mwan3
         - device_inventory
-        - wan_apps
-    static_configs:
-      - targets: ["__ROUTER_ADDRESS__:__ROUTER_EXPORTER_PORT__"]
-        labels:
-          router: __ROUTER_LABEL__
-    metric_relabel_configs:
-      - target_label: job
-        replacement: openwrt
-
-  - job_name: openwrt-netify
-    scrape_interval: 10s
-    scrape_timeout: 8s
-    params:
-      "collect[]":
-        - netify
+        - wan_counters
     static_configs:
       - targets: ["__ROUTER_ADDRESS__:__ROUTER_EXPORTER_PORT__"]
         labels:

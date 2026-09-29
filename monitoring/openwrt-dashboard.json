@@ -6,11 +6,10 @@
   "id": null,
   "links": [
     {"asDropdown": false, "icon": "external link", "includeVars": true, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Device Analytics", "tooltip": "Inspect one IP and MAC", "type": "link", "url": "/d/openwrt-device-analytics/openwrt-device-analytics"},
-    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open WAN Analytics", "tooltip": "Inspect usage and applications by WAN", "type": "link", "url": "/d/openwrt-wan-analytics/openwrt-wan-analytics"},
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open WAN Analytics", "tooltip": "Inspect usage by WAN", "type": "link", "url": "/d/openwrt-wan-analytics/openwrt-wan-analytics"},
     {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Long-Term Analytics", "tooltip": "Use precomputed minute, hourly and daily history", "type": "link", "url": "/d/openwrt-long-term-analytics/openwrt-long-term-analytics"},
     {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Device Inventory", "tooltip": "First seen, last seen and online devices", "type": "link", "url": "/d/openwrt-device-inventory/openwrt-device-inventory"},
-    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Data Quality", "tooltip": "Collector reconciliation and data health", "type": "link", "url": "/d/openwrt-data-quality/openwrt-data-quality"},
-    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Service & Security Analytics", "tooltip": "Separate services from protocols and inspect VPN or encrypted DNS", "type": "link", "url": "/d/openwrt-service-security-analytics/openwrt-service-security-analytics"}
+    {"asDropdown": false, "icon": "external link", "includeVars": false, "keepTime": true, "tags": [], "targetBlank": false, "title": "Open Data Quality", "tooltip": "Collector reconciliation and data health", "type": "link", "url": "/d/openwrt-data-quality/openwrt-data-quality"}
   ],
   "panels": [
     {
@@ -121,21 +120,11 @@
     {
       "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
       "fieldConfig": {"defaults": {"links": [{"targetBlank": false, "title": "Open ${__field.labels.ip} device analytics", "url": "/d/openwrt-device-analytics/openwrt-device-analytics?${__url_time_range}&var-device_mac=${__field.labels.mac}&var-device_ip=${__field.labels.ip}"}], "unit": "bytes"}, "overrides": []},
-      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 19},
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 19},
       "id": 7,
       "options": {"displayMode": "gradient", "minVizHeight": 10, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
       "targets": [{"editorMode": "code", "expr": "sort_desc(topk(15, sum by (ip, mac) (increase(nlbwmon_rx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]) + increase(nlbwmon_tx_bytes{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}[$__range]))) * on(ip, mac) group_left(device_name) max by (ip, mac, device_name) (nlbwmon_device_info{job=\"openwrt\",router=\"__ROUTER_LABEL__\"}))", "instant": true, "legendFormat": "{{device_name}} | {{ip}}", "range": false, "refId": "A"}],
       "title": "Top Clients — Selected Time Range",
-      "type": "bargauge"
-    },
-    {
-      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
-      "fieldConfig": {"defaults": {"links": [{"targetBlank": false, "title": "Open ${__field.labels.application} application analytics", "url": "/d/openwrt-application-analytics/openwrt-application-analytics?${__url_time_range}&var-application=${__field.labels.application}"}], "unit": "bytes"}, "overrides": []},
-      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 19},
-      "id": 8,
-      "options": {"displayMode": "gradient", "minVizHeight": 10, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
-      "targets": [{"editorMode": "code", "expr": "topk(15, sum by (application) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\"}[$__range])))", "instant": true, "legendFormat": "{{application}}", "range": false, "refId": "A"}],
-      "title": "Top Applications & Services — DPI + Hostname",
       "type": "bargauge"
     },
     {
@@ -154,7 +143,7 @@
     {
       "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
       "fieldConfig": {"defaults": {"unit": "si:bps"}, "overrides": []},
-      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 33},
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 33},
       "id": 14,
       "options": {"legend": {"calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}},
       "targets": [
@@ -163,16 +152,6 @@
       ],
       "title": "Selected Device - Bandwidth Over Time",
       "type": "timeseries"
-    },
-    {
-      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
-      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
-      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 33},
-      "id": 15,
-      "options": {"displayMode": "gradient", "minVizHeight": 10, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
-      "targets": [{"editorMode": "code", "expr": "sort_desc(topk(15, sum by (application) (increase(openwrt_netify_application_bytes_total{job=\"openwrt\",dpi_application!=\"\",router=\"__ROUTER_LABEL__\",ip=~\"$client_ip\"}[$__range]))))", "instant": true, "legendFormat": "{{application}}", "range": false, "refId": "A"}],
-      "title": "Selected Device — Applications & Services",
-      "type": "bargauge"
     },
     {
       "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},

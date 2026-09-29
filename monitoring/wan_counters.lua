@@ -1,9 +1,5 @@
 local json = require "cjson"
 
-local app_names = {
-  DNS_over_TLS = "DNS-over-TLS"
-}
-
 local function trim(value)
   return (value or ""):match("^%s*(.-)%s*$")
 end
@@ -33,24 +29,14 @@ local function scrape()
 
   local total_bytes = metric("openwrt_wan_bytes_total", "counter")
   local total_packets = metric("openwrt_wan_packets_total", "counter")
-  local app_bytes = metric("openwrt_wan_port_application_bytes_total", "counter")
-  local app_packets = metric("openwrt_wan_port_application_packets_total", "counter")
-
   for _, item in ipairs(decoded.nftables) do
     local counter = item.counter
     if counter and counter.name then
-      local wan, direction, application = counter.name:match("^prom_wan_([^_]+)_([^_]+)_(.+)$")
+      local wan, direction = counter.name:match("^prom_wan_([^_]+)_([^_]+)_All$")
       if wan and (direction == "download" or direction == "upload") then
-        application = app_names[application] or application
-        if application == "All" then
-          local labels = {wan = wan, direction = direction}
-          total_bytes(labels, tonumber(counter.bytes) or 0)
-          total_packets(labels, tonumber(counter.packets) or 0)
-        else
-          local labels = {wan = wan, direction = direction, application = application}
-          app_bytes(labels, tonumber(counter.bytes) or 0)
-          app_packets(labels, tonumber(counter.packets) or 0)
-        end
+        local labels = {wan = wan, direction = direction}
+        total_bytes(labels, tonumber(counter.bytes) or 0)
+        total_packets(labels, tonumber(counter.packets) or 0)
       end
     end
   end

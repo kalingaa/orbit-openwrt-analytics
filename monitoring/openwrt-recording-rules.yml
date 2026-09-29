@@ -10,10 +10,6 @@ groups:
         expr: max_over_time((sum by (mac, ip) (irate(nlbwmon_rx_bytes{job="openwrt",router="__ROUTER_LABEL__"}[1m])) * 8)[1m:5s])
       - record: openwrt:device_upload_bps:1m_max
         expr: max_over_time((sum by (mac, ip) (irate(nlbwmon_tx_bytes{job="openwrt",router="__ROUTER_LABEL__"}[1m])) * 8)[1m:5s])
-      - record: openwrt:device_application_bps:1m_max
-        expr: max_over_time((sum by (mac, ip, layer7) ((irate(nlbwmon_rx_bytes{job="openwrt",router="__ROUTER_LABEL__",layer7!=""}[1m]) + irate(nlbwmon_tx_bytes{job="openwrt",router="__ROUTER_LABEL__",layer7!=""}[1m])) * 8))[1m:5s])
-      - record: openwrt:netify_application_bps:1m_max
-        expr: max_over_time((sum by (mac, ip, application, dpi_application, service, domain, protocol, traffic_class, detection, wan) (irate(openwrt_netify_application_bytes_total{job="openwrt",dpi_application!="",router="__ROUTER_LABEL__"}[1m]) * 8))[1m:5s])
 
   - name: openwrt_hourly_rollups
     interval: 1h
@@ -22,16 +18,8 @@ groups:
         expr: sum by (mac, ip) (increase(nlbwmon_rx_bytes{job="openwrt",router="__ROUTER_LABEL__"}[1h]))
       - record: openwrt:device_upload_bytes:1h
         expr: sum by (mac, ip) (increase(nlbwmon_tx_bytes{job="openwrt",router="__ROUTER_LABEL__"}[1h]))
-      - record: openwrt:device_application_bytes:1h
-        expr: sum by (mac, ip, layer7) (increase(nlbwmon_rx_bytes{job="openwrt",router="__ROUTER_LABEL__",layer7!=""}[1h]) + increase(nlbwmon_tx_bytes{job="openwrt",router="__ROUTER_LABEL__",layer7!=""}[1h]))
-      - record: openwrt:wan_application_bytes:1h
-        expr: sum by (wan, direction, application) (increase(openwrt_wan_port_application_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[1h]))
       - record: openwrt:wan_bytes:1h
         expr: sum by (wan, direction) (increase(openwrt_wan_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[1h]))
-      - record: openwrt:wan_device_bytes:1h
-        expr: sum by (wan, direction, ip) (increase(openwrt_netify_application_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[1h]))
-      - record: openwrt:netify_application_bytes:1h
-        expr: sum by (mac, ip, application, dpi_application, service, domain, protocol, traffic_class, detection, wan, direction) (increase(openwrt_netify_application_bytes_total{job="openwrt",dpi_application!="",router="__ROUTER_LABEL__"}[1h]))
 
   - name: openwrt_daily_rollups
     # Evaluate the rolling 24-hour window hourly so a Prometheus restart does
@@ -42,13 +30,5 @@ groups:
         expr: sum by (mac, ip) (increase(nlbwmon_rx_bytes{job="openwrt",router="__ROUTER_LABEL__"}[24h]))
       - record: openwrt:device_upload_bytes:1d
         expr: sum by (mac, ip) (increase(nlbwmon_tx_bytes{job="openwrt",router="__ROUTER_LABEL__"}[24h]))
-      - record: openwrt:device_application_bytes:1d
-        expr: sum by (mac, ip, layer7) (increase(nlbwmon_rx_bytes{job="openwrt",router="__ROUTER_LABEL__",layer7!=""}[24h]) + increase(nlbwmon_tx_bytes{job="openwrt",router="__ROUTER_LABEL__",layer7!=""}[24h]))
-      - record: openwrt:wan_application_bytes:1d
-        expr: sum by (wan, direction, application) (increase(openwrt_wan_port_application_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[24h]))
       - record: openwrt:wan_bytes:1d
         expr: sum by (wan, direction) (increase(openwrt_wan_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[24h]))
-      - record: openwrt:wan_device_bytes:1d
-        expr: sum by (wan, direction, ip) (increase(openwrt_netify_application_bytes_total{job="openwrt",router="__ROUTER_LABEL__"}[24h]))
-      - record: openwrt:netify_application_bytes:1d
-        expr: sum by (mac, ip, application, dpi_application, service, domain, protocol, traffic_class, detection, wan, direction) (increase(openwrt_netify_application_bytes_total{job="openwrt",dpi_application!="",router="__ROUTER_LABEL__"}[24h]))

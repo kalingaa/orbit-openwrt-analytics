@@ -7,10 +7,8 @@ ROUTER_SSH_PORT=22
 ROUTER_LABEL=openwrt-router
 ROUTER_EXPORTER_PORT=9100
 
-# LAN and hostname discovery.
+# LAN scope and device-name discovery.
 LAN_CIDR=192.0.2.0/24
-LAN_DEVICE=br-lan
-LAN_DEVICE=br-lan
 LOCAL_DOMAIN=home.arpa
 # Comma-separated DNS servers. Leave empty to use only OpenWrt/LuCI hints.
 DNS_SERVERS=192.0.2.1

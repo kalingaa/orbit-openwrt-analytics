@@ -11,7 +11,7 @@ mkdir -p "$BACKUP"
 . "$PAYLOAD/site.env"
 
 opkg update
-opkg install nlbwmon netifyd socat ip-full coreutils-install coreutils-timeout prometheus-node-exporter-lua \
+opkg install nlbwmon ip-full coreutils-install coreutils-timeout prometheus-node-exporter-lua \
   prometheus-node-exporter-lua-ethtool prometheus-node-exporter-lua-hwmon \
   prometheus-node-exporter-lua-mwan3 prometheus-node-exporter-lua-nat_traffic \
   prometheus-node-exporter-lua-netstat prometheus-node-exporter-lua-nft-counters \
@@ -23,6 +23,7 @@ if [ -x /usr/libexec/ip-full ]; then ln -sf /usr/libexec/ip-full /sbin/ip; fi
 
 for path in /etc/config/nlbwmon /etc/config/netifyd /etc/config/prometheus-node-exporter-lua \
   /etc/netifyd.conf /etc/nftables.d/90-openwrt-network-analytics-apps.nft \
+  /etc/nftables.d/90-openwrt-network-analytics-wan.nft \
   /etc/nftables.d/90-prometheus-wan-apps.nft \
   /etc/nftables.d/91-openwrt-network-analytics-devices.nft \
   /etc/nftables.d/91-prometheus-wan-devices.nft /etc/prometheus-device-names \
@@ -47,53 +48,43 @@ uci set prometheus-node-exporter-lua.main.listen_interface='lan'
 uci set prometheus-node-exporter-lua.main.listen_port="$ROUTER_EXPORTER_PORT"
 uci commit prometheus-node-exporter-lua
 
-uci set netifyd.@netifyd[0].enabled='1'
-uci set netifyd.@netifyd[0].autoconfig='0'
-uci -q delete netifyd.@netifyd[0].internal_if || true
-uci add_list netifyd.@netifyd[0].internal_if="$LAN_DEVICE"
-uci -q delete netifyd.@netifyd[0].external_if || true
-# Intentional word splitting: the rendered value is a validated space-separated list.
-# shellcheck disable=SC2086
-for device in $WAN_DEVICES; do uci add_list netifyd.@netifyd[0].external_if="$device"; done
-uci commit netifyd
-
 install -d -m 0755 /usr/lib/lua/prometheus-collectors /etc/nftables.d /etc/sysctl.d
-for collector in nlbwmon netify device_inventory wan_apps; do
+for collector in nlbwmon device_inventory wan_counters; do
   install -m 0644 "$PAYLOAD/$collector.lua" "/usr/lib/lua/prometheus-collectors/$collector.lua"
 done
-install -m 0644 "$PAYLOAD/netify-stream.lua" /usr/lib/lua/prometheus-netify-stream.lua
-rm -f /usr/lib/lua/prometheus-collectors/netify-stream.lua
-install -m 0755 "$PAYLOAD/prometheus-netify-stream" /usr/bin/prometheus-netify-stream
-install -m 0755 "$PAYLOAD/prometheus-netify-stream.init" /etc/init.d/prometheus-netify-stream
 install -m 0755 "$PAYLOAD/device-name" /usr/bin/device-name
 install -m 0755 "$PAYLOAD/prometheus-device-names-refresh" /usr/bin/prometheus-device-names-refresh
 install -m 0755 "$PAYLOAD/prometheus-device-inventory-checkpoint" /usr/bin/prometheus-device-inventory-checkpoint
-install -m 0755 "$PAYLOAD/prometheus-netify-memory-guard" /usr/bin/prometheus-netify-memory-guard
 install -m 0644 "$PAYLOAD/99-openwrt-analytics.conf" /etc/sysctl.d/99-openwrt-analytics.conf
-install -m 0644 "$PAYLOAD/netifyd.conf" /etc/netifyd.conf
-install -m 0644 "$PAYLOAD/wan_app_counters.nft" /etc/nftables.d/90-openwrt-network-analytics-apps.nft
+install -m 0644 "$PAYLOAD/wan_counters.nft" /etc/nftables.d/90-openwrt-network-analytics-wan.nft
 [ -f /etc/prometheus-device-names ] || install -m 0600 "$PAYLOAD/prometheus-device-names" /etc/prometheus-device-names
 
 # Migrate the pre-project filename after preserving it in the timestamped backup.
 # Keeping both files would define the same nftables meters twice and fail fw4.
 rm -f /etc/nftables.d/90-prometheus-wan-apps.nft
+rm -f /etc/nftables.d/90-openwrt-network-analytics-apps.nft
 rm -f /etc/nftables.d/91-prometheus-wan-devices.nft
 rm -f /etc/nftables.d/91-openwrt-network-analytics-devices.nft
 rm -f /usr/lib/lua/prometheus-collectors/wan_devices.lua
+rm -f /usr/lib/lua/prometheus-collectors/wan_apps.lua
+rm -f /usr/lib/lua/prometheus-collectors/netify.lua
+rm -f /usr/lib/lua/prometheus-collectors/netify-stream.lua
 
 grep -q 'prometheus-device-names-refresh' /etc/crontabs/root 2>/dev/null || \
   echo '*/5 * * * * /usr/bin/prometheus-device-names-refresh >/dev/null 2>&1' >> /etc/crontabs/root
 grep -q 'prometheus-device-inventory-checkpoint' /etc/crontabs/root 2>/dev/null || \
   echo '*/5 * * * * /usr/bin/prometheus-device-inventory-checkpoint >/dev/null 2>&1' >> /etc/crontabs/root
-grep -q 'prometheus-netify-memory-guard' /etc/crontabs/root 2>/dev/null || \
-  echo '*/5 * * * * /usr/bin/prometheus-netify-memory-guard >/dev/null 2>&1' >> /etc/crontabs/root
+sed -i '/prometheus-netify-memory-guard/d' /etc/crontabs/root
 
 # Validate normal fw4 reload semantics. Dynamic named meters are intentionally
 # not installed because subsequent WAN ifup reloads collide with active sets.
 fw4 check
 /etc/init.d/firewall reload
 timeout 75 /etc/init.d/mwan3 restart || true
-/etc/init.d/prometheus-netify-stream stop || true
+/etc/init.d/prometheus-netify-stream stop 2>/dev/null || true
+/etc/init.d/prometheus-netify-stream disable 2>/dev/null || true
+/etc/init.d/netifyd stop 2>/dev/null || true
+/etc/init.d/netifyd disable 2>/dev/null || true
 # Older wrapper versions did not forward procd termination to their pipeline.
 # Terminate only verified orphaned stream children before resetting state.
 for pid in $(pidof lua 2>/dev/null || true); do
@@ -107,9 +98,17 @@ done
 sleep 1
 # This is an ephemeral accumulator. Prometheus retains the historical samples,
 # while starting from a compact state avoids decoding the pre-fix unbounded file.
-rm -f /tmp/prometheus-netify-stream-state.json /tmp/prometheus-netify-stream-state.json.tmp
+rm -f /tmp/prometheus-netify-stream-state.json /tmp/prometheus-netify-stream-state.json.tmp \
+  /tmp/prometheus-netify-state.json /tmp/prometheus-netify-state.json.tmp
+rm -f /etc/init.d/prometheus-netify-stream /usr/bin/prometheus-netify-stream \
+  /usr/bin/prometheus-netify-memory-guard /usr/lib/lua/prometheus-netify-stream.lua \
+  /etc/netifyd.conf /etc/config/netifyd
+opkg remove netifyd >/dev/null 2>&1 || true
+if ! opkg whatdepends socat 2>/dev/null | grep -qvE '^(Root set:|  socat|What depends on root set|)$'; then
+  opkg remove socat >/dev/null 2>&1 || true
+fi
 sysctl -p /etc/sysctl.d/99-openwrt-analytics.conf
-for service in nlbwmon netifyd prometheus-netify-stream cron prometheus-node-exporter-lua; do
+for service in nlbwmon cron prometheus-node-exporter-lua; do
   "/etc/init.d/$service" enable
   "/etc/init.d/$service" restart
 done

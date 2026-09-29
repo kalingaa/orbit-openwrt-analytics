@@ -93,32 +93,41 @@ local function scrape()
     local tx_packets = metric("nlbwmon_tx_packets", "counter")
     local device_info = metric("nlbwmon_device_info", "gauge")
     local device_names = load_device_names()
-    local seen_devices = {}
+    local devices = {}
 
     for _, row in ipairs(report.data) do
         local mac = safe_label(row[4])
         local ip = safe_label(row[5])
-        local device_name = device_names[string.upper(mac)] or "unknown"
-        local labels = {
-            family = tonumber(row[1]) == 6 and "IPv6" or "IPv4",
-            proto = safe_label(row[2]),
-            port = safe_label(row[3]),
-            mac = mac,
-            ip = ip,
-            layer7 = safe_label(row[11])
-        }
-
-        local device_key = mac .. "|" .. ip
-        if not seen_devices[device_key] then
-            device_info({mac = mac, ip = ip, device_name = device_name}, 1)
-            seen_devices[device_key] = true
+        local family = tonumber(row[1]) == 6 and "IPv6" or "IPv4"
+        local key = family .. "|" .. mac .. "|" .. ip
+        local device = devices[key]
+        if device == nil then
+            device = {
+                labels = {family = family, mac = mac, ip = ip},
+                connections = 0,
+                rx_bytes = 0,
+                rx_packets = 0,
+                tx_bytes = 0,
+                tx_packets = 0
+            }
+            devices[key] = device
         end
+        device.connections = device.connections + (tonumber(row[6]) or 0)
+        device.rx_bytes = device.rx_bytes + (tonumber(row[7]) or 0)
+        device.rx_packets = device.rx_packets + (tonumber(row[8]) or 0)
+        device.tx_bytes = device.tx_bytes + (tonumber(row[9]) or 0)
+        device.tx_packets = device.tx_packets + (tonumber(row[10]) or 0)
+    end
 
-        connections(labels, tonumber(row[6]) or 0)
-        rx_bytes(labels, tonumber(row[7]) or 0)
-        rx_packets(labels, tonumber(row[8]) or 0)
-        tx_bytes(labels, tonumber(row[9]) or 0)
-        tx_packets(labels, tonumber(row[10]) or 0)
+    for _, device in pairs(devices) do
+        local labels = device.labels
+        local device_name = device_names[string.upper(labels.mac)] or "unknown"
+        device_info({mac = labels.mac, ip = labels.ip, device_name = device_name}, 1)
+        connections(labels, device.connections)
+        rx_bytes(labels, device.rx_bytes)
+        rx_packets(labels, device.rx_packets)
+        tx_bytes(labels, device.tx_bytes)
+        tx_packets(labels, device.tx_packets)
     end
 end
 

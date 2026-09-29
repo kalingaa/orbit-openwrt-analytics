@@ -59,6 +59,10 @@ install -o root -g root -m 0644 "$BUILD_DIR/grafana-openwrt-analytics.conf" /etc
 # Remove the pre-project provider after backing it up. Keeping both files makes
 # Grafana provision every dashboard UID twice and serve stale dashboard copies.
 rm -f /etc/grafana/provisioning/dashboards/firewall-analytics.yml
+for retired_dashboard in openwrt-application-dashboard.json openwrt-service-security-dashboard.json; do
+  backup_file "/var/lib/grafana/dashboards/$retired_dashboard"
+  rm -f "/var/lib/grafana/dashboards/$retired_dashboard"
+done
 for dashboard in "$BUILD_DIR"/*dashboard.json; do
   backup_file "/var/lib/grafana/dashboards/$(basename "$dashboard")"
   install -o grafana -g grafana -m 0644 "$dashboard" /var/lib/grafana/dashboards/

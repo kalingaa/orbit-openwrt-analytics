@@ -117,30 +117,11 @@ local function collect_active_neighbours(state, now)
   pipe:close()
 end
 
-local function collect_active_flows(state, now)
-  local snapshot = read_json("/var/run/netifyd/sink-request.json")
-  if not snapshot or type(snapshot.flows) ~= "table" then return end
-  local seen = {}
-  for _, flows in pairs(snapshot.flows) do
-    if type(flows) == "table" then
-      for _, flow in ipairs(flows) do
-        local key = safe(flow.local_mac) .. "|" .. safe(flow.local_ip)
-        if not seen[key] then
-          add_device(state, flow.local_mac, flow.local_ip, now, true)
-          seen[key] = true
-        end
-      end
-    end
-  end
-end
-
 local function scrape()
   local now = os.time()
   local state = load_state()
   collect_accounted_devices(state, now)
   collect_active_neighbours(state, now)
-  collect_active_flows(state, now)
-
   local names, sources = load_names()
   local info = metric("openwrt_device_inventory_info", "gauge")
   local first_seen = metric("openwrt_device_first_seen_seconds", "gauge")

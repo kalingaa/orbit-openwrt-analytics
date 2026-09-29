@@ -34,19 +34,12 @@ server phase installs Prometheus, node exporter, and Grafana if needed, then
 provisions rules, datasource, and dashboards. Existing managed files are copied
 to a timestamped backup directory before replacement.
 
-The router dependencies include `socat`. The
-`prometheus-netify-stream` procd service uses it to consume Netify's local Unix
-socket continuously; no Netify metadata is sent to an external cloud service.
-The stream writes compact counter state every five seconds and the installer
-adds a five-minute passive-DPI memory guard for embedded-router safety.
-
 Router transfers use legacy SCP mode because Dropbear installations do not
 normally ship an SFTP server. During upgrades, the installer also migrates the
-legacy WAN-device include name and safely recreates its generated dynamic
-meters before reloading the validated firewall ruleset.
-It also removes the former `90-prometheus-wan-apps.nft` filename after backing
-it up; retaining it alongside the current include would count every packet
-twice.
+legacy nftables include names and removes the former Netify collectors and
+services before reloading the validated firewall ruleset. Only forwarded WAN
+totals are retained; application, service, SNI, and destination-hostname data
+are not collected.
 
 When Grafana is not already available through APT, the installer configures the
 [official Grafana stable repository](https://grafana.com/docs/grafana/latest/setup-grafana/installation/debian/)
@@ -81,10 +74,9 @@ device-name remove 02:00:00:00:00:01
 ./manage.sh uninstall
 ```
 
-The command disables project services/configuration and removes only files
-owned by this project after creating a backup. It does not delete Prometheus
-history, Grafana's database, or packages unless `--purge-data` is explicitly
-provided. Review the printed target paths before confirming.
+The command prints conservative manual removal instructions. Run
+`./manage.sh backup` first. Prometheus history and Grafana's database are
+preserved unless you explicitly delete them.
 
 ## Network security
 

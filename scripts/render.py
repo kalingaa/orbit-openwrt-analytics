@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import json
-import ipaddress
 import re
 import shutil
 import sys
@@ -40,24 +39,6 @@ def csv(value: str) -> list[str]:
 
 def lua_quote(value: str) -> str:
     return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
-
-
-def cidr_label_regex(value: str) -> str:
-    """Return a JSON-source-safe regex for dotted IPv4 labels in a CIDR."""
-    network = ipaddress.ip_network(value, strict=False)
-    if network.version != 4:
-        raise ValueError("LAN_CIDR must be an IPv4 network")
-    octets = str(network.network_address).split(".")
-    full_octets, remaining_bits = divmod(network.prefixlen, 8)
-    parts = octets[:full_octets]
-    if remaining_bits:
-        start = int(octets[full_octets])
-        size = 2 ** (8 - remaining_bits)
-        parts.append("(?:" + "|".join(str(number) for number in range(start, start + size)) + ")")
-    parts.extend(["[0-9]{1,3}"] * (4 - len(parts)))
-    # This value is substituted into JSON source. PromQL needs two backslashes
-    # in its decoded string literal, so JSON source needs four.
-    return r"\\\\.".join(parts)
 
 
 def remove_disabled_panels(value):
@@ -106,17 +87,11 @@ def main() -> int:
         raise ValueError("WAN names may contain only letters, numbers, and hyphens")
     if any(not re.fullmatch(r"[A-Za-z0-9_.:@-]+", device) for device in wan_devices):
         raise ValueError("WAN devices contain unsupported characters")
-    if not re.fullmatch(r"[A-Za-z0-9_.:@-]+", values.get("LAN_DEVICE", "br-lan")):
-        raise ValueError("LAN_DEVICE contains unsupported characters")
-
     dns_servers = csv(values.get("DNS_SERVERS", ""))
     replacements = {
         "__ROUTER_ADDRESS__": values["ROUTER_ADDRESS"],
         "__ROUTER_LABEL__": values["ROUTER_LABEL"],
         "__ROUTER_EXPORTER_PORT__": values.get("ROUTER_EXPORTER_PORT", "9100"),
-        "__LAN_CIDR__": values["LAN_CIDR"],
-        "__LAN_IP_REGEX__": cidr_label_regex(values["LAN_CIDR"]),
-        "__LAN_DEVICE__": values.get("LAN_DEVICE", "br-lan"),
         "__LOCAL_DOMAIN__": values.get("LOCAL_DOMAIN", "lan"),
         "__PROMETHEUS_RETENTION_TIME__": values["PROMETHEUS_RETENTION_TIME"],
         "__PROMETHEUS_RETENTION_SIZE__": values["PROMETHEUS_RETENTION_SIZE"],
@@ -142,9 +117,7 @@ def main() -> int:
         encoding="utf-8",
     )
     (BUILD / "site.env").write_text(
-        "LAN_DEVICE=" + values.get("LAN_DEVICE", "br-lan") + "\n"
-        + "ROUTER_EXPORTER_PORT=" + values.get("ROUTER_EXPORTER_PORT", "9100") + "\n"
-        + "WAN_DEVICES='" + " ".join(wan_devices) + "'\n",
+        "ROUTER_EXPORTER_PORT=" + values.get("ROUTER_EXPORTER_PORT", "9100") + "\n",
         encoding="utf-8",
         newline="\n",
     )

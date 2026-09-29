@@ -1,19 +1,14 @@
 # OpenWrt Network Analytics
 
-Self-hosted per-device, per-application, and multi-WAN analytics for OpenWrt.
+Self-hosted per-device and multi-WAN traffic analytics for OpenWrt.
 The router exports Prometheus metrics; a Debian or Ubuntu server stores them
-and serves provisioned Grafana dashboards. Netify processing stays local.
+and serves provisioned Grafana dashboards.
 
 ## Features
 
 - Per-IP and per-MAC upload, download, bandwidth, first/last seen, and aliases.
-- Separate application, service/domain, protocol, and security-sensitive traffic
-  attribution using local Netify DPI and hostname correlation.
-- Event-driven Netify accounting that captures short-lived and completed flow
-  reports, with visible attribution coverage against authoritative WAN totals.
-- Best-effort identification of VPN, encrypted DNS (DoH/DoT/DoQ), Tor, proxy,
-  and unresolved QUIC traffic.
-- One to three WANs with separate usage, rates, applications, and devices.
+- One to three WANs with separate authoritative forwarded upload/download totals
+  and interface rates.
 - Automatic names from OpenWrt host hints, DHCP leases, and optional DNS PTRs.
 - Inventory, behavioral profiles, reconciliation, and data-quality dashboards.
 - One-second WAN samples, five-second detail samples, and long-term rollups.
@@ -51,12 +46,11 @@ manual installation, backups, upgrades, and removal.
 
 ## Privacy
 
-This project records traffic metadata. It does not decrypt TLS and does not
-enable DNS-query logging. Base domains extracted from DNS hints, TLS SNI, and
-QUIC metadata are stored as Prometheus labels. Application and security
-attribution can be incomplete when ECH, VPNs, proxies, shared CDNs, or MAC
-randomization are used. Keep Grafana and Prometheus on a trusted management
-network and define an appropriate retention policy.
+This project records traffic-volume metadata by IP and MAC, device identity
+metadata, WAN totals, and router health. It does not collect payloads, DNS
+queries, hostnames visited by clients, TLS SNI, DPI results, applications, or
+services. Keep Grafana and Prometheus on a trusted management network and
+define an appropriate retention policy.
 
 ## Project status
 

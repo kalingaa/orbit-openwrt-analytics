@@ -27,4 +27,3 @@ jobs:
         run: |
           shellcheck manage.sh scripts/*.sh
           luac5.1 -p monitoring/*.lua
-          lua5.1 tests/netify_test.lua

@@ -10,8 +10,7 @@ backups/
 .cache/
 *.log
 
-# Site-specific operator notes and aliases
-OPENWRT_ANALYTICS_MANUAL.md
+# Site-specific aliases
 monitoring/prometheus-device-names
 
 # Editor and OS files
