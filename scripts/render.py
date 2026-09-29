@@ -87,11 +87,17 @@ def main() -> int:
         raise ValueError("WAN names may contain only letters, numbers, and hyphens")
     if any(not re.fullmatch(r"[A-Za-z0-9_.:@-]+", device) for device in wan_devices):
         raise ValueError("WAN devices contain unsupported characters")
+    timezone_offset = values.get("TIMEZONE_OFFSET_SECONDS", "0")
+    if not re.fullmatch(r"-?[0-9]+", timezone_offset):
+        raise ValueError("TIMEZONE_OFFSET_SECONDS must be an integer")
+    if not -43200 <= int(timezone_offset) <= 50400:
+        raise ValueError("TIMEZONE_OFFSET_SECONDS must be between -43200 and 50400")
     dns_servers = csv(values.get("DNS_SERVERS", ""))
     replacements = {
         "__ROUTER_ADDRESS__": values["ROUTER_ADDRESS"],
         "__ROUTER_LABEL__": values["ROUTER_LABEL"],
         "__ROUTER_EXPORTER_PORT__": values.get("ROUTER_EXPORTER_PORT", "9100"),
+        "__TIMEZONE_OFFSET_SECONDS__": timezone_offset,
         "__LOCAL_DOMAIN__": values.get("LOCAL_DOMAIN", "lan"),
         "__PROMETHEUS_RETENTION_TIME__": values["PROMETHEUS_RETENTION_TIME"],
         "__PROMETHEUS_RETENTION_SIZE__": values["PROMETHEUS_RETENTION_SIZE"],

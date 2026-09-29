@@ -27,6 +27,8 @@ Versioning once the first tagged release is published.
   promptly after Prometheus restarts.
 - Guided configuration and one-command rendering/deployment workflow.
 - Support for one to three WANs and optional external DNS hostname lookup.
+- Split WAN download and upload usage into configurable local-time 07:00–24:00
+  and 00:00–07:00 windows.
 - Six provisioned dashboards covering overview, devices, WANs, long-term
   rollups, inventory, and collector data quality.
 - Health, backup, upgrade, and conservative uninstall workflows.

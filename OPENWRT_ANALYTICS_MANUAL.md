@@ -74,7 +74,8 @@ out under the configured retention policy.
 - **OpenWrt Device Analytics** — identity, IP history, selected-range totals,
   bandwidth, first/last seen, online state, and behavior trends.
 - **OpenWrt WAN Analytics** — status, online time, selected-range totals, and
-  bandwidth for each WAN.
+  bandwidth for each WAN, plus separate 07:00–24:00 and 00:00–07:00 local-time
+  download/upload totals.
 - **OpenWrt Long-Term Analytics** — minute peaks plus hourly/daily device usage.
 - **OpenWrt Device Inventory** — device names, addresses, presence, and history.
 - **OpenWrt Data Quality** — scrape health, collector reconciliation, resets,

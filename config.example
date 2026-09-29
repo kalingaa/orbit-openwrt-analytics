@@ -13,6 +13,10 @@ LOCAL_DOMAIN=home.arpa
 # Comma-separated DNS servers. Leave empty to use only OpenWrt/LuCI hints.
 DNS_SERVERS=192.0.2.1
 
+# Fixed UTC offset used for local-time usage windows, in seconds.
+# Examples: UTC=0, UTC+05:30=19800, UTC-05:00=-18000.
+TIMEZONE_OFFSET_SECONDS=0
+
 # One to three OpenWrt network interface names and their Linux devices.
 # Entries are positional: WAN_NAMES[0] uses WAN_DEVICES[0].
 WAN_NAMES=wan

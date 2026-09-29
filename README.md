@@ -8,7 +8,8 @@ and serves provisioned Grafana dashboards.
 
 - Per-IP and per-MAC upload, download, bandwidth, first/last seen, and aliases.
 - One to three WANs with separate authoritative forwarded upload/download totals
-  and interface rates.
+  and interface rates, including configurable local-time daytime/overnight
+  usage splits.
 - Automatic names from OpenWrt host hints, DHCP leases, and optional DNS PTRs.
 - Inventory, behavioral profiles, reconciliation, and data-quality dashboards.
 - One-second WAN samples, five-second detail samples, and long-term rollups.

@@ -79,6 +79,50 @@
       ],
       "title": "WAN Bandwidth Over Time",
       "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "description": "Downloaded bytes between 07:00 and midnight in the configured local UTC offset, intersected with the selected dashboard range.",
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 10, "w": 12, "x": 0, "y": 18},
+      "id": 10,
+      "options": {"displayMode": "gradient", "minVizHeight": 14, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "sort_desc(sum_over_time((sum by (wan) (increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=~\"$wan\",direction=\"download\"}[5m])) * scalar(hour(vector(time() + __TIMEZONE_OFFSET_SECONDS__)) >= bool 7))[$__range:5m]))", "instant": true, "legendFormat": "{{wan}}", "range": false, "refId": "A"}],
+      "title": "07:00–24:00 — Download by WAN",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "description": "Uploaded bytes between 07:00 and midnight in the configured local UTC offset, intersected with the selected dashboard range.",
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 10, "w": 12, "x": 12, "y": 18},
+      "id": 11,
+      "options": {"displayMode": "gradient", "minVizHeight": 14, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "sort_desc(sum_over_time((sum by (wan) (increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=~\"$wan\",direction=\"upload\"}[5m])) * scalar(hour(vector(time() + __TIMEZONE_OFFSET_SECONDS__)) >= bool 7))[$__range:5m]))", "instant": true, "legendFormat": "{{wan}}", "range": false, "refId": "A"}],
+      "title": "07:00–24:00 — Upload by WAN",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "description": "Downloaded bytes between midnight and 07:00 in the configured local UTC offset, intersected with the selected dashboard range.",
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 10, "w": 12, "x": 0, "y": 28},
+      "id": 12,
+      "options": {"displayMode": "gradient", "minVizHeight": 14, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "sort_desc(sum_over_time((sum by (wan) (increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=~\"$wan\",direction=\"download\"}[5m])) * scalar(hour(vector(time() + __TIMEZONE_OFFSET_SECONDS__)) < bool 7))[$__range:5m]))", "instant": true, "legendFormat": "{{wan}}", "range": false, "refId": "A"}],
+      "title": "00:00–07:00 — Download by WAN",
+      "type": "bargauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PBFA97CFB590B2093"},
+      "description": "Uploaded bytes between midnight and 07:00 in the configured local UTC offset, intersected with the selected dashboard range.",
+      "fieldConfig": {"defaults": {"unit": "bytes"}, "overrides": []},
+      "gridPos": {"h": 10, "w": 12, "x": 12, "y": 28},
+      "id": 13,
+      "options": {"displayMode": "gradient", "minVizHeight": 14, "minVizWidth": 0, "orientation": "horizontal", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "showUnfilled": true, "valueMode": "color"},
+      "targets": [{"editorMode": "code", "expr": "sort_desc(sum_over_time((sum by (wan) (increase(openwrt_wan_bytes_total{job=\"openwrt\",router=\"__ROUTER_LABEL__\",wan=~\"$wan\",direction=\"upload\"}[5m])) * scalar(hour(vector(time() + __TIMEZONE_OFFSET_SECONDS__)) < bool 7))[$__range:5m]))", "instant": true, "legendFormat": "{{wan}}", "range": false, "refId": "A"}],
+      "title": "00:00–07:00 — Upload by WAN",
+      "type": "bargauge"
     }
   ],
   "refresh": "30s",
